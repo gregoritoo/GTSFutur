@@ -34,16 +34,16 @@ my dataframe (df) is like below and have a 200 points seasonal pattern :</br>
 ...</br>
 **Code for prediction 365 steps ahead**
 ```
-import GSFutur
-model=GSFutur()
+from GTSFutur.GTSPredictor import GTSPredictor
+model=GTSPredictor()
 model.fit(df,look_back=400,freq_period=200,directory="My_directory_name")
 prediction,lower,upper=model.predict(steps=365)
 ```
 
 **Code for prediction 365 steps ahead using the user interface**
 ```
-from GSFutur import GSFutur
-model=GSFutur()
+from GTSFutur.GTSPredictor import GTSPredictor
+model=GTSPredictor()
 model.fit_with_UI(df,directory="My_directory_name")
 prediction,lower,upper=model.predict(steps=365)
 ```
