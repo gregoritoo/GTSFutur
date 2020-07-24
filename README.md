@@ -15,7 +15,7 @@ Summary
 -[Quick methods explanation ](#requirements) </br>
 -[Why decomposition ?](#why-decomposition-?)</br>
 
-GSFutur object
+GTSPredictor object
 --------------
 
 This object simplify prediction by hidding all the paramaters for the user.
