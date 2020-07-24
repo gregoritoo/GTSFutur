@@ -1,4 +1,5 @@
 # ML_pipeline_influxdb
+[![PyPI version](https://badge.fury.io/py/GTSFutur.svg)](https://badge.fury.io/py/GTSFutur) </br>
 Exemple of LSTM + DECOMPOSITION prédiction :
 
 ![LSTM PRED](/Images/gif_lstm.gif)
