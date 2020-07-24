@@ -59,7 +59,7 @@ model.plot_prediction(df,prediction,lower,upper)
 ```
 model=model.reuse(df,directory="My_directory_name")
 ```
-**Retrain the model (on new data for example)**
+**Retrain the model (on new data for example in order to do incremental learning)**
 ```
 model=model.retrain(df)
 ```
@@ -86,7 +86,7 @@ Quick methods explanation
      size of inputs (generaly freq_period *2 but always more than freq_period). </br>
   -freq_period : int </br>
      size in point of the seasonal pattern (ex 24 if daily seasonality for a signal sampled at 1h frequency). </br>
-  -directory : str </br>
+  -directory : str </br> optionnal
      Directory where the models are going to be saved, by default at the root (r".").</br>
      
 **Once the model fitted it can by used by applying the predict function which need only two inputs**: </br>
