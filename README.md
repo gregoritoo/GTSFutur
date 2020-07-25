@@ -87,6 +87,7 @@ matplotlib</br>
 scipy</br>
 sklearn</br>
 pickle</br>
+xgboost </br>
 
 
 Quick methods explanation 
