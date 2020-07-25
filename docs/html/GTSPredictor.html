@@ -1,0 +1,795 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>GTSPredictor module &mdash; GTSFutur 0.1.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="General Time Serie Prediction" href="explication.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> GTSFutur
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="explication.html">General Time Serie Prediction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">GTSPredictor module</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GTSFutur</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>GTSPredictor module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/GTSPredictor.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-GTSPredictor">
+<span id="gtspredictor-module"></span><h1>GTSPredictor module<a class="headerlink" href="#module-GTSPredictor" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="GTSPredictor.EarlyStoppingByUnderVal">
+<em class="property">class </em><code class="sig-prename descclassname">GTSPredictor.</code><code class="sig-name descname">EarlyStoppingByUnderVal</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor</span><span class="o">=</span><span class="default_value">'val_loss'</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.EarlyStoppingByUnderVal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.callbacks.Callback</span></code></p>
+<p>Class to stop model’s training earlier if the value we monitor(monitor) goes under a threshold (value)
+replace usual callbacks functions from keras</p>
+<dl class="py method">
+<dt id="GTSPredictor.EarlyStoppingByUnderVal.on_epoch_end">
+<code class="sig-name descname">on_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">epoch</span></em>, <em class="sig-param"><span class="n">logs</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.EarlyStoppingByUnderVal.on_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called at the end of an epoch.</p>
+<p>Subclasses should override for any actions to run. This function should only
+be called during TRAIN mode.</p>
+<dl>
+<dt>Arguments:</dt><dd><p>epoch: integer, index of epoch.
+logs: dict, metric results for this training epoch, and for the</p>
+<blockquote>
+<div><p>validation epoch if validation is performed. Validation result keys
+are prefixed with <cite>val_</cite>.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="GTSPredictor.GTSPredictor">
+<em class="property">class </em><code class="sig-prename descclassname">GTSPredictor.</code><code class="sig-name descname">GTSPredictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.create_features">
+<code class="sig-name descname">create_features</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">label</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.create_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">look_back</span></em>, <em class="sig-param"><span class="n">freq_period</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">nb_features</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">nb_epochs</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">nb_batch</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">nb_layers</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">attention</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">loss</span><span class="o">=</span><span class="default_value">'mape'</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">'mse'</span></em>, <em class="sig-param"><span class="n">optimizer</span><span class="o">=</span><span class="default_value">'Adamax'</span></em>, <em class="sig-param"><span class="n">directory</span><span class="o">=</span><span class="default_value">'.'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function take the data , make the preprocessing steps and train the models whit multi threading</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>df<span class="classifier">dataframe</span></dt><dd><p>with a time columns (string) and y the columns with the values to forecast.</p>
+</dd>
+<dt>look_back<span class="classifier">int</span></dt><dd><p>size of inputs .</p>
+</dd>
+<dt>freq_period<span class="classifier">int</span></dt><dd><p>size in point of the seasonal pattern (ex 24 if daily seasonality for a signal sampled at 1h frequency).</p>
+</dd>
+<dt>verbose<span class="classifier">0 or 1</span></dt><dd><p>If 0 no information printed during the creation and training of models.</p>
+</dd>
+<dt>nb_features :int, optional</dt><dd><p>output size. The default is 1.</p>
+</dd>
+<dt>nb_epochs<span class="classifier">int, optional</span></dt><dd><p>The default is 50.</p>
+</dd>
+<dt>nb_batch<span class="classifier">int, optional</span></dt><dd><p>The default is 100.</p>
+</dd>
+<dt>nb_layers<span class="classifier">int, optional</span></dt><dd><p>The default is 50.</p>
+</dd>
+<dt>attention<span class="classifier">Bool, optional</span></dt><dd><p>Either use or not the attention layer. The default is True.</p>
+</dd>
+<dt>loss<span class="classifier">str, optional</span></dt><dd><p>loss for evaluation error between input and output . The default is “mape”.</p>
+</dd>
+<dt>metric<span class="classifier">str, optional</span></dt><dd><p>metrics for evaluation the training predictions. The default is “mse”.</p>
+</dd>
+<dt>optimizer<span class="classifier">str, optional</span></dt><dd><p>Keras optimizers. The default is “Adamax”.</p>
+</dd>
+<dt>directory<span class="classifier">str, optional</span></dt><dd><p>directory path which need to end by “/”. The default is r”.”</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.fit_predict_XGBoost">
+<code class="sig-name descname">fit_predict_XGBoost</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">date_format</span></em>, <em class="sig-param"><span class="n">steps</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">early_stopping_rounds</span><span class="o">=</span><span class="default_value">300</span></em>, <em class="sig-param"><span class="n">test_size</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">nb_estimators</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.fit_predict_XGBoost" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function uses XGBoost mode in order to forecast values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>df<span class="classifier">dataframe</span></dt><dd><p>Values that are going to be used for the training.</p>
+</dd>
+<dt>freq<span class="classifier">str (python datetime format)</span></dt><dd><p>frequency of the data, ex “m” for months, “d” for days …</p>
+</dd>
+<dt>date_format<span class="classifier">str</span></dt><dd><p>format of time columns (ex if date columns is 1996-05-04, date_format=”%Y-%m-%d”</p>
+</dd>
+<dt>steps<span class="classifier">int</span></dt><dd><p>number of points to forecast</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>prediction<span class="classifier">array</span></dt><dd><p>array of predicted values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.fit_predict_without_dec">
+<code class="sig-name descname">fit_predict_without_dec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">look_back</span></em>, <em class="sig-param"><span class="n">freq_period</span></em>, <em class="sig-param"><span class="n">len_prediction</span></em>, <em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">nb_features</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">nb_epochs</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">nb_batch</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">nb_layers</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">attention</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">loss</span><span class="o">=</span><span class="default_value">'mape'</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">'mse'</span></em>, <em class="sig-param"><span class="n">optimizer</span><span class="o">=</span><span class="default_value">'Adamax'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.fit_predict_without_dec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.fit_whitout">
+<code class="sig-name descname">fit_whitout</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">look_back</span></em>, <em class="sig-param"><span class="n">freq_period</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">nb_features</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">nb_epochs</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">nb_batch</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">nb_layers</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">attention</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">loss</span><span class="o">=</span><span class="default_value">'mape'</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">'mse'</span></em>, <em class="sig-param"><span class="n">optimizer</span><span class="o">=</span><span class="default_value">'Adamax'</span></em>, <em class="sig-param"><span class="n">directory</span><span class="o">=</span><span class="default_value">'.'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.fit_whitout" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function take the data , make the preprocessing steps and train the models whitout multi threading</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>df<span class="classifier">dataframe</span></dt><dd><p>with a time columns (string) and y the columns with the values to forecast.</p>
+</dd>
+<dt>look_back<span class="classifier">int</span></dt><dd><p>size of inputs .</p>
+</dd>
+<dt>freq_period<span class="classifier">int</span></dt><dd><p>size in point of the seasonal pattern (ex 24 if daily seasonality for a signal sampled at 1h frequency).</p>
+</dd>
+<dt>verbose<span class="classifier">0 or 1</span></dt><dd><p>If 0 no information printed during the creation and training of models.</p>
+</dd>
+<dt>nb_features :int, optional</dt><dd><p>output size. The default is 1.</p>
+</dd>
+<dt>nb_epochs<span class="classifier">int, optional</span></dt><dd><p>The default is 50.</p>
+</dd>
+<dt>nb_batch<span class="classifier">int, optional</span></dt><dd><p>The default is 100.</p>
+</dd>
+<dt>nb_layers<span class="classifier">int, optional</span></dt><dd><p>The default is 50.</p>
+</dd>
+<dt>attention<span class="classifier">Bool, optional</span></dt><dd><p>Either use or not the attention layer. The default is True.</p>
+</dd>
+<dt>loss<span class="classifier">str, optional</span></dt><dd><p>loss for evaluation error between input and output . The default is “mape”.</p>
+</dd>
+<dt>metric<span class="classifier">str, optional</span></dt><dd><p>metrics for evaluation the training predictions. The default is “mse”.</p>
+</dd>
+<dt>optimizer<span class="classifier">str, optional</span></dt><dd><p>Keras optimizers. The default is “Adamax”.</p>
+</dd>
+<dt>directory<span class="classifier">str, optional</span></dt><dd><p>directory path which need to end by “/”. The default is r”.”.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.fit_with_UI">
+<code class="sig-name descname">fit_with_UI</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">nb_features</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">nb_epochs</span><span class="o">=</span><span class="default_value">300</span></em>, <em class="sig-param"><span class="n">nb_batch</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">nb_layers</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">attention</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">loss</span><span class="o">=</span><span class="default_value">'mape'</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">'mse'</span></em>, <em class="sig-param"><span class="n">optimizer</span><span class="o">=</span><span class="default_value">'Adamax'</span></em>, <em class="sig-param"><span class="n">directory</span><span class="o">=</span><span class="default_value">'.'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.fit_with_UI" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open a matplotlib window for you to select the pattern, take the data , make the preprocessing steps and train the models</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>df<span class="classifier">dataframe</span></dt><dd><p>with a time columns (string) and y the columns with the values to forecast.</p>
+</dd>
+<dt>verbose<span class="classifier">0 or 1</span></dt><dd><p>If 0 no information printed during the creation and training of models.</p>
+</dd>
+<dt>nb_features :int, optional</dt><dd><p>output size. The default is 1.</p>
+</dd>
+<dt>nb_epochs<span class="classifier">int, optional</span></dt><dd><p>The default is 50.</p>
+</dd>
+<dt>nb_batch<span class="classifier">int, optional</span></dt><dd><p>The default is 100.</p>
+</dd>
+<dt>nb_layers<span class="classifier">int, optional</span></dt><dd><p>The default is 50.</p>
+</dd>
+<dt>attention<span class="classifier">Bool, optional</span></dt><dd><p>Either use or not the attention layer. The default is True.</p>
+</dd>
+<dt>loss<span class="classifier">str, optional</span></dt><dd><p>loss for evaluation error between input and output . The default is “mape”.</p>
+</dd>
+<dt>metric<span class="classifier">str, optional</span></dt><dd><p>metrics for evaluation the training predictions. The default is “mse”.</p>
+</dd>
+<dt>optimizer<span class="classifier">str, optional</span></dt><dd><p>Keras optimizers. The default is “Adamax”.</p>
+</dd>
+<dt>directory<span class="classifier">str, optional</span></dt><dd><p>directory path which need to end by “/”. The default is r”.”</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.frame_prediction">
+<code class="sig-name descname">frame_prediction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prediction</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.frame_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function compute the 95% confident interval by calculating the standard deviation and the mean of the residual(Gaussian like distribution)
+and return yestimated +- 1.96*CI +mean (1.96 to have 95%)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>prediction<span class="classifier">array</span></dt><dd><p>array contening the perdicted vector (1,N) size.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>lower<span class="classifier">array</span></dt><dd><p>array contening the lowers boundry values (1,N) size.</p>
+</dd>
+<dt>upper<span class="classifier">array</span></dt><dd><p>array contening the upper boundry values (1,N) size.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.load_models">
+<code class="sig-name descname">load_models</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">directory</span><span class="o">=</span><span class="default_value">'.'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.load_models" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.make_models">
+<code class="sig-name descname">make_models</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trend</span></em>, <em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.make_models" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.make_models_with">
+<code class="sig-name descname">make_models_with</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trend</span></em>, <em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.make_models_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an LSTM model depending on the parameters selected by the user</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>nb_layers<span class="classifier">int</span></dt><dd><p>nb of layers of the lstm model.</p>
+</dd>
+<dt>loss<span class="classifier">str</span></dt><dd><p>loss of the model.</p>
+</dd>
+<dt>metric<span class="classifier">str</span></dt><dd><p>metric to evaluate the model.</p>
+</dd>
+<dt>nb_features<span class="classifier">int</span></dt><dd><p>size of the ouput (one for regression).</p>
+</dd>
+<dt>optimizer<span class="classifier">str</span></dt><dd><p>gradient descend’s optimizer.</p>
+</dd>
+<dt>trend<span class="classifier">bool</span></dt><dd><p>Distinguish trend signal from others (more complicated to modelise).</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>model<span class="classifier">Sequential object</span></dt><dd><p>model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.make_prediction">
+<code class="sig-name descname">make_prediction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">len_prediction</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.make_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>This function make the prediction :</dt><dd><p>reshape data to fit with the model
+make one prediction
+crush outdated data with prediction
+repeat len_prediction times</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>len_prediction<span class="classifier">int</span></dt><dd><p>number of value we want to predict.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>prediction<span class="classifier">array</span></dt><dd><p>values predicted.</p>
+</dd>
+<dt>pred_trend<span class="classifier">array</span></dt><dd><p>values trend predicted (recherches prupose).</p>
+</dd>
+<dt>pred_seasonal<span class="classifier">array</span></dt><dd><p>values seasonal predicted (recherches prupose).</p>
+</dd>
+<dt>pred_residual<span class="classifier">array</span></dt><dd><p>values residual predicted (recherches prupose).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.model_save">
+<code class="sig-name descname">model_save</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.model_save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.plot_prediction">
+<code class="sig-name descname">plot_prediction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">prediction</span></em>, <em class="sig-param"><span class="n">lower</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">upper</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.plot_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function plots the predicted values at the end of the real values and plots the 95% CI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>df<span class="classifier">dataframe</span></dt><dd><p>Values that are going to be used for the training.</p>
+</dd>
+<dt>prediction<span class="classifier">array</span></dt><dd><p>predicted values</p>
+</dd>
+<dt>lower<span class="classifier">array</span></dt><dd><p>lower bounder values</p>
+</dd>
+<dt>upper<span class="classifier">array</span></dt><dd><p>upper bounder values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">steps</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">frame</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict the futur values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>steps<span class="classifier">int</span></dt><dd><p>number of points you want to forecast</p>
+</dd>
+<dt>frame<span class="classifier">Bool</span></dt><dd><p>True if you want the lower and upper bounders.default is True.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>prediction<span class="classifier">array</span></dt><dd><p>Array with the predicted values</p>
+</dd>
+<dt>lower<span class="classifier">array</span></dt><dd><p>Array containing the lower values. Only if frame == True.</p>
+</dd>
+<dt>frame<span class="classifier">Bool</span></dt><dd><p>Array containing the lower values. Only if frame == True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.prediction_eval">
+<code class="sig-name descname">prediction_eval</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prediction</span></em>, <em class="sig-param"><span class="n">real_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.prediction_eval" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function compute and print four differents metrics (mse ,mae ,r2 and median) to evaluate accuracy of the model
+prediction and real_data need to have the same size</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>prediction<span class="classifier">array</span></dt><dd><p>predicted values.</p>
+</dd>
+<dt>real_data<span class="classifier">array</span></dt><dd><p>real data.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.prepare_data">
+<code class="sig-name descname">prepare_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">look_back</span></em>, <em class="sig-param"><span class="n">freq_period</span></em>, <em class="sig-param"><span class="n">first</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.prepare_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>df<span class="classifier">DataFrame</span></dt><dd><p>datafrmae contening historical data .</p>
+</dd>
+<dt>look_back<span class="classifier">int</span></dt><dd><p>length entry of the model .</p>
+</dd>
+</dl>
+<p>Decompose the signal in three sub signals, trend,seasonal and residual in order to work separetly on each signal
+:returns:
+trend_x : array</p>
+<blockquote>
+<div><p>values of the trend of the signal, matrix of dimention X array of dimension (1,length entry of model) X= length(dataframe)/look_back.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>trend_y<span class="classifier">array</span></dt><dd><p>vaklues to be predicted during the training</p>
+</dd>
+<dt>seasonal_x<span class="classifier">array</span></dt><dd><p>same as trend_x but with the seasonal part of the signal.</p>
+</dd>
+<dt>seasonal_y<span class="classifier">array</span></dt><dd><p>same as trend_y but with the seasonal part of the signal.</p>
+</dd>
+<dt>residual_x<span class="classifier">array</span></dt><dd><p>same as trend_x but with the residual part of the signal.</p>
+</dd>
+<dt>residual_y<span class="classifier">array</span></dt><dd><p>same as trend_y but with the residual part of the signal.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.retrain">
+<code class="sig-name descname">retrain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">nb_features</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">nb_epochs</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">nb_batch</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.retrain" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function retrain a GTSPredictor object that contained  already trained models in order to do incremental learning.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>df<span class="classifier">dataframe</span></dt><dd><p>Values that are going to be used for the training.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>self<span class="classifier">GTSPredictor object</span></dt><dd><p>trained object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.reuse">
+<code class="sig-name descname">reuse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">directory</span><span class="o">=</span><span class="default_value">'.'</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.reuse" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function recreate a new GTSPredictor object with already trained models in order to be then reused.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>df<span class="classifier">dataframe</span></dt><dd><p>Values that are going to be used for the training.</p>
+</dd>
+<dt>directory<span class="classifier">dataframe</span></dt><dd><p>Directory containing the models to be load and the informations</p>
+</dd>
+<dt>verbose<span class="classifier">int</span></dt><dd><p>0 for no informations, 1 otherweise.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>self<span class="classifier">GTSPredictor object</span></dt><dd><p>trained object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.GTSPredictor.train_model">
+<code class="sig-name descname">train_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">x_train</span></em>, <em class="sig-param"><span class="n">y_train</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.GTSPredictor.train_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train the model and save it in the right file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>model<span class="classifier">Sequential object</span></dt><dd><p>model.</p>
+</dd>
+<dt>x_train<span class="classifier">array</span></dt><dd><p>training data inputs.</p>
+</dd>
+<dt>y_train<span class="classifier">array</span></dt><dd><p>training data ouputs.</p>
+</dd>
+<dt>nb_epochs<span class="classifier">int.</span></dt><dd><p>nb of training repetitions.</p>
+</dd>
+<dt>nb_batch<span class="classifier">int</span></dt><dd><p>size of batch of element which gonna enter in the model before doing a back propagation.</p>
+</dd>
+<dt>trend<span class="classifier">bool</span></dt><dd><p>Distinguish trend signal from others (more complicated to modelise).</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>model<span class="classifier">Sequential object</span></dt><dd><p>model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="GTSPredictor.IdentityTransformer">
+<em class="property">class </em><code class="sig-prename descclassname">GTSPredictor.</code><code class="sig-name descname">IdentityTransformer</code><a class="headerlink" href="#GTSPredictor.IdentityTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.base.BaseEstimator</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.base.TransformerMixin</span></code></p>
+<dl class="py method">
+<dt id="GTSPredictor.IdentityTransformer.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.IdentityTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.IdentityTransformer.inverse_transform">
+<code class="sig-name descname">inverse_transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.IdentityTransformer.inverse_transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.IdentityTransformer.transform">
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.IdentityTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="GTSPredictor.Thread_train_model">
+<em class="property">class </em><code class="sig-prename descclassname">GTSPredictor.</code><code class="sig-name descname">Thread_train_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">x_train</span></em>, <em class="sig-param"><span class="n">y_train</span></em>, <em class="sig-param"><span class="n">nb_epochs</span></em>, <em class="sig-param"><span class="n">nb_batch</span></em>, <em class="sig-param"><span class="n">name_ts</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.Thread_train_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<dl class="py method">
+<dt id="GTSPredictor.Thread_train_model.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.Thread_train_model.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method representing the thread’s activity.</p>
+<p>You may override this method in a subclass. The standard run() method
+invokes the callable object passed to the object’s constructor as the
+target argument, if any, with sequential and keyword arguments taken
+from the args and kwargs arguments, respectively.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.Thread_train_model.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.Thread_train_model.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="GTSPredictor.Thread_train_model.train_model">
+<code class="sig-name descname">train_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">x_train</span></em>, <em class="sig-param"><span class="n">y_train</span></em>, <em class="sig-param"><span class="n">nb_epochs</span></em>, <em class="sig-param"><span class="n">nb_batch</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.Thread_train_model.train_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train the model and save it in the right file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<dl class="simple">
+<dt>model<span class="classifier">Sequential object</span></dt><dd><p>model.</p>
+</dd>
+<dt>x_train<span class="classifier">array</span></dt><dd><p>training data inputs.</p>
+</dd>
+<dt>y_train<span class="classifier">array</span></dt><dd><p>training data ouputs.</p>
+</dd>
+<dt>nb_epochs<span class="classifier">int.</span></dt><dd><p>nb of training repetitions.</p>
+</dd>
+<dt>nb_batch<span class="classifier">int</span></dt><dd><p>size of batch of element which gonna enter in the model before doing a back propagation.</p>
+</dd>
+<dt>trend<span class="classifier">bool</span></dt><dd><p>Distinguish trend signal from others (more complicated to modelise).</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>model<span class="classifier">Sequential object</span></dt><dd><p>model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="GTSPredictor.attention_block">
+<code class="sig-prename descclassname">GTSPredictor.</code><code class="sig-name descname">attention_block</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hidden_states</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.attention_block" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="GTSPredictor.decoupe_dataframe">
+<code class="sig-prename descclassname">GTSPredictor.</code><code class="sig-name descname">decoupe_dataframe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">look_back</span></em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.decoupe_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="GTSPredictor.progressbar">
+<code class="sig-prename descclassname">GTSPredictor.</code><code class="sig-name descname">progressbar</code><span class="sig-paren">(</span><em class="sig-param">it</em>, <em class="sig-param">prefix=''</em>, <em class="sig-param">size=60</em>, <em class="sig-param">file=&lt;colorama.ansitowin32.StreamWrapper object&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#GTSPredictor.progressbar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="explication.html" class="btn btn-neutral float-left" title="General Time Serie Prediction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Gregory Scafarto
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
