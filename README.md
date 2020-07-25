@@ -13,6 +13,7 @@ Summary
 -[Example use case ](#example-use-case ) </br>
 -[Requirements](#quick-methods-explanation ) </br>
 -[Quick methods explanation ](#requirements) </br>
+-[Some results](#resutls) </br>
 -[Why decomposition ?](#why-decomposition-?)</br>
 
 GTSPredictor object
@@ -124,7 +125,9 @@ This function compute and print four differents metrics (mse ,mae ,r2 and median
         predicted values.</br>
    -real_data : array</br>
         real data.</br>
-      
+        
+Results
+-------
 Why decomposition ?
 -----------------
 As describe in the article above, the aim of the project is to create a module able to forecast values of severals time series that could 
