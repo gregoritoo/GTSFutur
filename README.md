@@ -13,7 +13,7 @@ Summary
 -[Example use case ](#example-use-case ) </br>
 -[Requirements](#quick-methods-explanation ) </br>
 -[Quick methods explanation ](#requirements) </br>
--[Some results](#resutls) </br>
+-[Some results](#results) </br>
 -[Why decomposition ?](#why-decomposition-?)</br>
 
 GTSPredictor object
@@ -127,7 +127,7 @@ This function compute and print four differents metrics (mse ,mae ,r2 and median
         real data.</br>
         
 Results
--------
+--------
 ![LSTM PRED](/Images/figures.png)
 Theses are "out of the box" results. The only parameter to determine was the size of the seasonal pattern which is easy to find as he can be determine through visual inspection
 
