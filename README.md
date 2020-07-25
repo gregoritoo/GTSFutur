@@ -71,6 +71,7 @@ model=model.reuse(df,directory="My_directory_name")
 ```
 **Retrain the model (on new data for example in order to do incremental learning)**
 ```
+# before the model need to be loaded either it's just after the first training or used reuse function
 model=model.retrain(df)
 ```
 
