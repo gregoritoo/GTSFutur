@@ -128,6 +128,9 @@ This function compute and print four differents metrics (mse ,mae ,r2 and median
         
 Results
 -------
+![LSTM PRED](/Images/figures.png)
+Theses are "out of the box" results. The only parameter to determine was the size of the seasonal pattern which is easy to find as he can be determine through visual inspection
+
 Why decomposition ?
 -----------------
 As describe in the article above, the aim of the project is to create a module able to forecast values of severals time series that could 
