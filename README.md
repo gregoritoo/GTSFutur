@@ -37,7 +37,7 @@ pip install GTSFutur
 Use
 ---
 
-**Example use case (The dataframe need to have a columns named "time" and one named "y" in order to work)** </br>
+**Example use case (The dataframe needs to have a columns named "time" and one named "y" in order to work)** </br>
 my dataframe (df) is like below and have a 200 points seasonal pattern :</br>
 "time","y"</br>
 "1749-01",58.0</br>
