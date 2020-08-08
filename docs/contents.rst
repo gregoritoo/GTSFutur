@@ -1,7 +1,6 @@
 Home page
 =======
 
-
 .. toctree::
    :maxdepth: 4
 
