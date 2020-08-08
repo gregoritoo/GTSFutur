@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>General Time Serie Prediction &mdash; GTSFutur 0.1.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="General Time Serie Anomalies Detection" href="Detection.html" />
+    <link rel="prev" title="scripts" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> GTSFutur
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">General Time Serie Prediction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#gtspredictor-object">GTSPredictor object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install">Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use">Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#results">Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-methods-explanation">Quick methods explanation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-decomposition">Why decomposition ?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Detection.html">General Time Serie Anomalies Detection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="GTSPredictor.html">GTSPredictor module</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GTSFutur</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>General Time Serie Prediction</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Prediction.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="general-time-serie-prediction">
+<h1>General Time Serie Prediction<a class="headerlink" href="#general-time-serie-prediction" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="gtspredictor-object">
+<h2>GTSPredictor object<a class="headerlink" href="#gtspredictor-object" title="Permalink to this headline">¶</a></h2>
+<p>This object simplify prediction by hidding all the paramaters for the user. Let’s focus on the most important features :</p>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>pandas</p>
+<p>numpy</p>
+<p>statsmodels</p>
+<p>tensorflow</p>
+<p>matplotlib</p>
+<p>scipy</p>
+<p>sklearn</p>
+<p>pickle</p>
+<p>xgboost</p>
+<p>pyWavelets</p>
+</div>
+<div class="section" id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">GTSFutur</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use">
+<h2>Use<a class="headerlink" href="#use" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example use case (The dataframe needs to have a columns named “time” and one named “y” in order to work)</strong> my dataframe (df) is like below and have a 200 points seasonal pattern :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;time&quot;</span><span class="p">,</span><span class="s2">&quot;y&quot;</span>
+<span class="s2">&quot;1749-01&quot;</span><span class="p">,</span><span class="mf">58.0</span>
+<span class="s2">&quot;1749-02&quot;</span><span class="p">,</span><span class="mf">62.6</span>
+<span class="s2">&quot;1749-03&quot;</span><span class="p">,</span><span class="mf">70.0</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p><strong>Code for prediction 365 steps ahead</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">GTSFutur.GTSPredictor</span> <span class="kn">import</span> <span class="n">GTSPredictor</span>
+<span class="n">model</span><span class="o">=</span><span class="n">GTSPredictor</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="n">look_back</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span><span class="n">freq_period</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span><span class="n">directory</span><span class="o">=</span><span class="s2">&quot;My_directory_name&quot;</span><span class="p">)</span>
+<span class="n">prediction</span><span class="p">,</span><span class="n">lower</span><span class="p">,</span><span class="n">upper</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">365</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Code for prediction 365 steps ahead using the user interface</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">GTSFutur.GTSPredictor</span> <span class="kn">import</span> <span class="n">GTSPredictor</span>
+<span class="n">model</span><span class="o">=</span><span class="n">GTSPredictor</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit_with_UI</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="n">directory</span><span class="o">=</span><span class="s2">&quot;My_directory_name&quot;</span><span class="p">)</span>
+<span class="n">prediction</span><span class="p">,</span><span class="n">lower</span><span class="p">,</span><span class="n">upper</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">365</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will open a matplotlib figure and you will be able to select the seasonal pattern with the mouse</p>
+<p><strong>plot</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">plot_prediction</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="n">prediction</span><span class="p">,</span><span class="n">lower</span><span class="p">,</span><span class="n">upper</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>reuse a saved model</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">reuse</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="n">directory</span><span class="o">=</span><span class="s2">&quot;My_directory_name&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Retrain the model (on new data for example in order to do incremental learning)</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># before the model need to be loaded either it&#39;s just after the first training or used reuse function</span>
+<span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">retrain</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Train and predict using XGBOOST for quicker but less accurate prediction</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># You need to know the format of the time column (here 2020M02 for februray 2020)</span>
+<span class="n">prediction</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">fit_predict_XGBoost</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="s2">&quot;m&quot;</span><span class="p">,</span><span class="s2">&quot;%YM%m&quot;</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="results">
+<h2>Results<a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-default" id="id1">
+<img alt="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/figures.png" src="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/figures.png" />
+<p class="caption"><span class="caption-text">Theses are “out of the box” results. The only parameter to determine was the size of the seasonal pattern which is easy to find as he can be determine through visual inspection</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="quick-methods-explanation">
+<h2>Quick methods explanation<a class="headerlink" href="#quick-methods-explanation" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt><strong>fit needs only three inputs</strong></dt><dd><p>-df : dataframe with a time columns (string) and y the columns with the values to forecast.</p>
+<p>-look_back : int size of inputs (generaly freq_period *2 but always more than freq_period).</p>
+<p>-freq_period : int size in point of the seasonal pattern (ex 24 if daily seasonality for a signal sampled at 1h frequency).</p>
+<p>-directory : str optionnal Directory where the models are going to be saved, by default at the root (r”.”).</p>
+</dd>
+<dt><strong>Once the model fitted it can by used by applying the predict function which need only two inputs</strong>:</dt><dd><p>-steps : int number of points you want to forecast, by default 1.</p>
+<p>-frame : Bool <em>If frame == True , compute an 95% intervalle and retruns 3 arrays</em> | if frame == False return an array with the predicted values</p>
+</dd>
+<dt><strong>Retrain allows your model to do incremental learning by retraining yours models with new data :</strong></dt><dd><p>-df : dataframe with a time columns (string) and y the columns with the values to forecast.</p>
+<p>-look_back : int size of inputs (generaly freq_period *2 but always more than freq_period).</p>
+<p>-freq_period : int size in point of the seasonal pattern (ex 24 if daily seasonality for a signal sampled at 1h frequency).</p>
+</dd>
+<dt><strong>load_models allows to reuse saved model by loading it in the class</strong> :</dt><dd><p>-directory : str name of directory contaning trend.h5,seasonal.h5,residual.h5 by default (r”.”) ie root of project</p>
+</dd>
+<dt><strong>prediction_eval : once the prediction made</strong> This function compute and print four differents metrics (mse ,mae ,r2 and median) to evaluate accuracy of the model prediction and real_data need to have the same size</dt><dd><p>-prediction : array predicted values.</p>
+<p>-real_data : array real data.n</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="why-decomposition">
+<h2>Why decomposition ?<a class="headerlink" href="#why-decomposition" title="Permalink to this headline">¶</a></h2>
+<p>As describe in the article above, the aim of the project is to create a module able to forecast values of severals time series that could deferred in nature. One of the main problem in Deep Neural Network is to tune hyper-parameters (as for example the number of neurones …) especially for multi-step ahead predictions. Decomposing the signal allow us to apply a single model for all the time series without spending time on hyper parameters tunning. Here below the results of this pre-processing process on differents signals :</p>
+<div class="figure align-default">
+<img alt="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/res_1.PNG" src="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/res_1.PNG" />
+</div>
+<div class="figure align-default">
+<img alt="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/res_2.PNG" src="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/res_2.PNG" />
+</div>
+<div class="figure align-default">
+<img alt="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/res_3.PNG" src="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/res_3.PNG" />
+</div>
+<p>For the experiments above, the same LSTM model was applied on three differents signals with the same hyper parameters. For the first two signals the accuracy is almost the same (except a one point delay for the cpu signal that appears for the LSTM + DECOMPOSITION model after one weak ahead prediction (which explain the difference of accuracy on the table below)).</p>
+<p>But for the third signal, the model without decomposition seems to reach a local minimum during the training and then the forecated values converge to the mean value while the model with decomposition is way more accurate. (the dataset of the third experiment is the Minimum Daily Temperatures Dataset available here : [<a class="reference external" href="https://machinelearningmastery.com/time-series-datasets-for-machine-learning/">https://machinelearningmastery.com/time-series-datasets-for-machine-learning/</a>]) Here the results of the three experiments :</p>
+<div class="figure align-default" id="id2">
+<img alt="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/table_res.PNG" src="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/table_res.PNG" />
+<p class="caption"><span class="caption-text">Note : this method also seems to disminuish the variance of the predicted values.( ie for the same dataset, the LSTM with decomposition is more likely to give the same forecasted value)</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Detection.html" class="btn btn-neutral float-right" title="General Time Serie Anomalies Detection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="scripts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Gregory Scafarto
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

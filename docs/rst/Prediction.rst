@@ -31,6 +31,8 @@ pickle
 
 xgboost
 
+pyWavelets
+
 Install
 -------
 

@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>General Time Serie Anomalies Detection &mdash; GTSFutur 0.1.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="GTSPredictor module" href="GTSPredictor.html" />
+    <link rel="prev" title="General Time Serie Prediction" href="Prediction.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> GTSFutur
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Prediction.html">General Time Serie Prediction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">General Time Serie Anomalies Detection</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#gtsdetection-object">GTSDetection object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#list-of-models">List of models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use">Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#some-results">Some Results</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="GTSPredictor.html">GTSPredictor module</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GTSFutur</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>General Time Serie Anomalies Detection</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Detection.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="general-time-serie-anomalies-detection">
+<h1>General Time Serie Anomalies Detection<a class="headerlink" href="#general-time-serie-anomalies-detection" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="gtsdetection-object">
+<h2>GTSDetection object<a class="headerlink" href="#gtsdetection-object" title="Permalink to this headline">¶</a></h2>
+<p>Many differents models for anomaly detection.</p>
+</div>
+<div class="section" id="list-of-models">
+<h2>List of models<a class="headerlink" href="#list-of-models" title="Permalink to this headline">¶</a></h2>
+<p>IEQ_Detector</p>
+<p>Mad_Detector</p>
+<p>Variation_Detector</p>
+<p>Period_Detector</p>
+<p>Autoencoder_Detector</p>
+<p>Wave_Detector</p>
+</div>
+<div class="section" id="use">
+<h2>Use<a class="headerlink" href="#use" title="Permalink to this headline">¶</a></h2>
+<p><strong>Detect disruption in the seasonal shape for contextual anomalies</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">GTSFutur.GTSDetector</span> <span class="kn">import</span> <span class="n">Wave_Detector</span><span class="p">,</span><span class="n">Period_Detector</span><span class="p">,</span><span class="n">Mad_Detector</span><span class="p">,</span><span class="n">Variation_Detector</span><span class="p">,</span><span class="n">Autoencoder_Detector</span><span class="p">,</span><span class="n">IEQ_Detector</span>
+<span class="n">detector</span><span class="o">=</span><span class="n">Period_Detector</span><span class="p">()</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">anomaly</span><span class="o">=</span><span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">plot_anomalies</span><span class="p">(</span><span class="n">anomaly</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Detect points far from the average statical distribution</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">GTSFutur.GTSDetector</span> <span class="kn">import</span> <span class="n">Wave_Detector</span><span class="p">,</span><span class="n">Period_Detector</span><span class="p">,</span><span class="n">Mad_Detector</span><span class="p">,</span><span class="n">Variation_Detector</span><span class="p">,</span><span class="n">Autoencoder_Detector</span><span class="p">,</span><span class="n">IEQ_Detector</span>
+<span class="n">detector</span><span class="o">=</span><span class="n">IEQ_Detector</span><span class="p">()</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="c1">#alpha a severity parameter</span>
+<span class="n">anomaly</span><span class="o">=</span><span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">1.96</span><span class="p">)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">plot_anomalies</span><span class="p">(</span><span class="n">anomaly</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Detect points far from the median</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">GTSFutur.GTSDetector</span> <span class="kn">import</span> <span class="n">Wave_Detector</span><span class="p">,</span><span class="n">Period_Detector</span><span class="p">,</span><span class="n">Mad_Detector</span><span class="p">,</span><span class="n">Variation_Detector</span><span class="p">,</span><span class="n">Autoencoder_Detector</span><span class="p">,</span><span class="n">IEQ_Detector</span>
+<span class="n">detector</span><span class="o">=</span><span class="n">Mad_Detector</span><span class="p">()</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">anomaly</span><span class="o">=</span><span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.6785</span><span class="p">)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">plot_anomalies</span><span class="p">(</span><span class="n">anomaly</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Detect important changes of values for measurements like mean,standard deviation and median on slidding windows</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">GTSFutur.GTSDetector</span> <span class="kn">import</span> <span class="n">Wave_Detector</span><span class="p">,</span><span class="n">Period_Detector</span><span class="p">,</span><span class="n">Mad_Detector</span><span class="p">,</span><span class="n">Variation_Detector</span><span class="p">,</span><span class="n">Autoencoder_Detector</span><span class="p">,</span><span class="n">IEQ_Detector</span>
+<span class="n">detector</span><span class="o">=</span><span class="n">Variation_Detector</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;std&quot;</span><span class="p">)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">anomaly</span><span class="o">=</span><span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span><span class="n">windows_size</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">plot_anomalies</span><span class="p">(</span><span class="n">anomaly</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Detect peaks once the signal denoised</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">GTSFutur.GTSDetector</span> <span class="kn">import</span> <span class="n">Wave_Detector</span><span class="p">,</span><span class="n">Period_Detector</span><span class="p">,</span><span class="n">Mad_Detector</span><span class="p">,</span><span class="n">Variation_Detector</span><span class="p">,</span><span class="n">Autoencoder_Detector</span><span class="p">,</span><span class="n">IEQ_Detector</span>
+<span class="n">detector</span><span class="o">=</span><span class="n">Wave_Detector</span><span class="p">()</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">anomaly</span><span class="o">=</span><span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">plot_anomalies</span><span class="p">(</span><span class="n">anomaly</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Use a LSTM auto encoder to detect more complexe, global and contextual, anomalies</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">GTSFutur.GTSDetector</span> <span class="kn">import</span> <span class="n">Wave_Detector</span><span class="p">,</span><span class="n">Period_Detector</span><span class="p">,</span><span class="n">Mad_Detector</span><span class="p">,</span><span class="n">Variation_Detector</span><span class="p">,</span><span class="n">Autoencoder_Detector</span><span class="p">,</span><span class="n">IEQ_Detector</span>
+<span class="n">detector</span><span class="o">=</span><span class="n">Autoencoder_Detector</span><span class="p">()</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="s2">&quot;My_directory_name&quot;</span><span class="p">)</span>
+<span class="n">anomaly</span><span class="o">=</span><span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="s2">&quot;My_directory_name&quot;</span><span class="p">,</span><span class="n">threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">plot_anomalies</span><span class="p">(</span><span class="n">anomaly</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="some-results">
+<h2>Some Results<a class="headerlink" href="#some-results" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-default">
+<img alt="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/global_anomalies.png" src="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/global_anomalies.png" />
+</div>
+<div class="figure align-default">
+<img alt="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/contextual_anomalies.png" src="https://raw.githubusercontent.com/gregoritoo/GTSFutur/master/Images/contextual_anomalies.png" />
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="GTSPredictor.html" class="btn btn-neutral float-right" title="GTSPredictor module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Prediction.html" class="btn btn-neutral float-left" title="General Time Serie Prediction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Gregory Scafarto
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
