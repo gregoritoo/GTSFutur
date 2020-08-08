@@ -23,9 +23,9 @@ copyright = '2020, Gregory Scafarto'
 author = 'Gregory Scafarto'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.1'
+release = '0.1.5.1'
 
-
+master_doc = 'index'
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
