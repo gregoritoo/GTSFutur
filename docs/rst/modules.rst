@@ -1,8 +1,9 @@
-scripts
+Home Page
 =======
 
 .. toctree::
    :maxdepth: 4
 
-   explication
+   Prediction
+   Detection
    GTSPredictor
