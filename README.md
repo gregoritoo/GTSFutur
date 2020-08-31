@@ -1,4 +1,4 @@
-# General Time Serie Prediction and Anomalies detection 
+# General Time Serie Prediction and Anomalies Detection 
 [![PyPI version](https://badge.fury.io/py/GTSFutur.svg)](https://badge.fury.io/py/GTSFutur) </br>
 Exemple of LSTM + DECOMPOSITION prédiction :
 
@@ -177,10 +177,5 @@ Use
     detector.plot_anomalies(anomaly,data)
 ```
 
-Some Results
-------------
 
-![LSTM ANO] (/Images/global_anomalies.png)
-
-![LSTM ANO2] (/Images/contextual_anomalies.png)
 
