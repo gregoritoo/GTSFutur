@@ -6,7 +6,7 @@ with open('README.md') as readme_file:
 
 setup_args = dict(
     name='GTSFutur',
-    version='0.0.1',
+    version='0.1.5.3',
     description='Simplify time series forecasting',
     long_description_content_type="text/markdown",
     long_description=README + '\n\n' ,
@@ -14,8 +14,8 @@ setup_args = dict(
     packages=["GTSFutur"],
     author='Gregory Scafarto',
     author_email='gregory.scafarto@gmail.com',
-    keywords=['Time seris', 'forecasting'],
-    url='https://github.com/gregoritoo/ML_pipeline_influxdb',
+    keywords=['Time series', 'forecasting','anomaly detection'],
+    url='https://github.com/gregoritoo/GTSFutur',
     download_url=''
 )
 
@@ -25,7 +25,8 @@ install_requires=[
           'sklearn',
           'matplotlib',
           'pandas',
-      ]
+          'PyWavelets',
+          ]
 
 
 if __name__ == '__main__':

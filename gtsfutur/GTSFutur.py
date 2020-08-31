@@ -1,42 +1,52 @@
+# -*- coding: utf-8 -*-
 import os
+import scipy.signal
+import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import  LSTM, Dropout
-from tensorflow.keras.layers import Dense, Lambda, dot, Activation, concatenate, Input
+from tensorflow.keras.layers import Dense, Lambda, dot, Activation, concatenate, Input ,RepeatVector ,TimeDistributed,Conv1D,MaxPooling1D,Flatten,BatchNormalization
 from tensorflow.keras import Model
 import numpy as np
+import tensorflow
 from matplotlib.widgets import SpanSelector
-from statsmodels.tsa.seasonal import seasonal_decompose
 from tensorflow.keras.models import save_model, load_model
 from tensorflow.keras.callbacks import EarlyStopping, Callback
 import sys
-from sklearn.preprocessing import PowerTransformer
+from sklearn.preprocessing import PowerTransformer ,MinMaxScaler
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator, TransformerMixin
 import pickle
 from statsmodels.tsa.seasonal import STL
+import threading
+import queue
+from ml_functions import decoupe_dataframe,EarlyStoppingByUnderVal,IdentityTransformer,attention_block
+from Thread_train_model import Thread_train_model
+from Thread_genetic_train_model import Thread_genetic_train_model
+#import xgboost as xgb
+#from xgboost import plot_importance, plot_tree
+import pandas as pd
+from datetime import datetime
+import joblib
+#from piecewise.regressor import piecewise
+#import pywt
+from tensorflow.keras.optimizers import Adam
+import multiprocessing as mp
+from multiprocessing import Process
+from multiprocessing import Queue
+from sklearn.impute import KNNImputer
 
-class IdentityTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        pass
-
-    def fit(self, input_array, y=None):
-        return self
-
-    def transform(self, input_array, y=None):
-        return input_array * 1
-
-    def inverse_transform(self, input_array, y=None):
-        return input_array * 1
+results = []
 
 
-def decoupe_dataframe(df, look_back):
+
+def sequence_dataframe(df,look_back,len_pred):
     dataX, dataY = [], []
-    for i in range(len(df) - look_back - 1):
+    for i in range(len(df) - look_back -len_pred- 1):
         a = df[i:(i + look_back)]
-        dataY = dataY + [df[i + look_back]]
+        b=df[(i + look_back):(i + look_back+len_pred)]
+        dataY.append(b)
         dataX.append(a)
-    return (np.asarray(dataX), np.asarray(dataY).flatten())
-
+    return (np.asarray(dataX), np.asarray(dataY))
 
 def progressbar(it, prefix="", size=60, file=sys.stdout):
     count = len(it)
@@ -54,51 +64,18 @@ def progressbar(it, prefix="", size=60, file=sys.stdout):
     file.flush()
 
 
-class EarlyStoppingByUnderVal(Callback):
-    '''
-    Class to stop model's training earlier if the value we monitor(monitor) goes under a threshold (value)
-    replace usual callbacks functions from keras
-    '''
 
-    def __init__(self, monitor='val_loss', value=0.00001, verbose=0):
-        super(Callback, self).__init__()
-        self.monitor = monitor
-        self.value = value
-        self.verbose = verbose
-
-    def on_epoch_end(self, epoch, logs={}):
-        current = logs.get(self.monitor)
-        if current is None:
-            print("error")
-
-        if current < self.value:
-            if self.verbose > 0:
-                print("Epoch %05d: early stopping THR" % epoch)
-            self.model.stop_training = True
-
-
-def attention_block(hidden_states):
-    hidden_size = int(hidden_states.shape[2])
-    score_first_part = Dense(hidden_size, use_bias=False, name='attention_score_vec')(hidden_states)
-    h_t = Lambda(lambda x: x[:, -1, :], output_shape=(hidden_size,), name='last_hidden_state')(hidden_states)
-    score = dot([score_first_part, h_t], [2, 1], name='attention_score')
-    attention_weights = Activation('softmax', name='attention_weight')(score)
-    context_vector = dot([hidden_states, attention_weights], [1, 1], name='context_vector')
-    pre_activation = concatenate([context_vector, h_t], name='attention_output')
-    attention_vector = Dense(128, use_bias=False, activation='tanh', name='attention_vector')(pre_activation)
-    return attention_vector
-
-
-class GTSFutur():
+class GTSPredictor():
 
     def __init__(self, verbose=0):
+        self.learning_rate = 0.001
         if verbose == 1:
             print("Model is being created")
         else:
             pass
 
-    def fit_with_UI(self,df,verbose=0, nb_features=1, nb_epochs=300, nb_batch=200, nb_layers=50,
-            attention=True, loss="mape", metric="mse", optimizer="Adamax", directory=r"."):
+    def fit_with_UI(self, df, verbose=0, nb_features=1, nb_epochs=300, nb_batch=32, nb_layers=50,
+                    attention=True, loss="mape", metric="mse", optimizer="Adamax", directory=r"."):
 
         if not os.path.isdir(directory) and directory != r".":
             os.makedirs(directory)
@@ -108,7 +85,7 @@ class GTSFutur():
         ax1.set(facecolor='#FFFFCC')
 
         print(len(df["y"]))
-        x = np.arange(0,len(df["y"]),1)
+        x = np.arange(0, len(df["y"]), 1)
         y = np.array(df["y"])
 
         ax1.plot(x, y, '-')
@@ -141,11 +118,13 @@ class GTSFutur():
         f.close()
         os.remove('pattern_size.txt')
         print(freq_period)
-        self.fit(df, int(freq_period*1.3)+1, freq_period, verbose=verbose, nb_features=nb_features, nb_epochs=nb_epochs, nb_batch=nb_batch, nb_layers=nb_layers,
-            attention=attention, loss=loss, metric=metric, optimizer=optimizer, directory=directory)
+        self.fit(df, int(freq_period * 1.3) + 1, freq_period, verbose=verbose, nb_features=nb_features,
+                 nb_epochs=nb_epochs, nb_batch=nb_batch, nb_layers=nb_layers,
+                 attention=attention, loss=loss, metric=metric, optimizer=optimizer, directory=directory)
 
-    def fit(self, df, look_back, freq_period, verbose=0, nb_features=1, nb_epochs=200, nb_batch=100, nb_layers=50,
-            attention=True, loss="mape", metric="mse", optimizer="Adamax", directory=r"."):
+    def fit_without(self, df, look_back, freq_period, verbose=0, nb_features=1, nb_epochs=200, nb_batch=100,
+                    nb_layers=50,
+                    attention=True, loss="mape", metric="mse", optimizer="Adamax", directory=r"."):
         '''
         This function take the data , make the preprocessing steps and train the models
         Parameters
@@ -195,7 +174,7 @@ class GTSFutur():
         self.verbose = verbose
         self.directory = directory
         trend_x, trend_y, seasonal_x, seasonal_y, residual_x, residual_y = self.prepare_data(df, look_back,
-                                                                                             self.freq_period,first=1)
+                                                                                             self.freq_period, first=1)
         if attention:
             model_trend = self.make_models_with(True, self.df)
             model_seasonal = self.make_models_with(False, self.df)
@@ -209,17 +188,146 @@ class GTSFutur():
         self.model_residual = self.train_model(model_residual, residual_x, residual_y, "residual")
         print("Modele fitted")
 
-    def predict(self, steps=1, frame=True):
-        prediction, lower, upper = self.make_prediction(steps)
-        if frame:
-            return prediction[0], lower[0], upper[0]
-        else:
-            return prediction[0]
+    def fit(self, df, look_back, freq_period, verbose=0, nb_features=1, nb_epochs=200, nb_batch=100, nb_layers=64,
+            attention=True,cnn=False, loss="mape", metric="mse", optimizer="Adamax", directory=r".",len_pred=1,seq2seq=False,deep_layers=2):
+        if not os.path.isdir(directory) and directory != r".":
+            os.makedirs(directory)
+        self.loss = loss
+        self.cnn=cnn
+        self.metric = metric
+        self.optimizer = optimizer
+        self.nb_features = nb_features
+        self.nb_epochs = nb_epochs
+        self.nb_batch = freq_period
+        self.seq2seq=seq2seq
+        maxi = min(9000, len(df))
+        self.df = df[-1 * maxi:]
+        self.deep_layers=deep_layers
+        self.nb_layers = nb_layers
+        self.freq_period = freq_period
+        self.look_back = look_back
+        self.verbose = verbose
+        self.len_pred=len_pred
+        self.directory = directory
+        if not seq2seq :
+            trend_x, trend_y, seasonal_x, seasonal_y, residual_x, residual_y = self.prepare_data(df, look_back,
+                                                                                                 self.freq_period, first=1)
+        else :
+            trend_x, trend_y, seasonal_x, seasonal_y, residual_x, residual_y = self.prepare_data(df, look_back,
+                                                                                                 self.freq_period, first=1, seq2seq=True)
+
+            print(trend_x.shape)
+            print(trend_y.shape)
+        if seq2seq :
+            model_trend =self.make_seq2seq_models(trend_x,trend_y)
+            model_seasonal = self.make_seq2seq_models(trend_x,trend_y)
+            model_residual = self.make_seq2seq_models(trend_x,trend_y)
+        elif attention and not cnn :
+            model_trend = self.make_models_with(True, self.df)
+            model_seasonal = self.make_models_with(False, self.df)
+            model_residual = self.make_models_with(False, self.df)
+        elif cnn:
+            model_trend = self.make_model_cnn(True, self.df)
+            model_seasonal = self.make_model_cnn(False, self.df)
+            model_residual = self.make_model_cnn(False, self.df)
+        
+        else :
+            model_trend = self.make_models(True, self.df)
+            model_seasonal = self.make_models(False, self.df)
+            model_residual = self.make_models(False, self.df)
+        que = queue.Queue()
+        threads_list = list()
+        if seq2seq :
+            
+            thread = Thread_train_model(model_trend, que, trend_x, trend_y, nb_epochs, nb_batch, "trend", "Trend Thread",
+                                        self.verbose,seq2seq=True)
+            thread.start()
+            threads_list.append(thread)
+            thread_1 = Thread_train_model(model_seasonal, que, seasonal_x, seasonal_y, nb_epochs, nb_batch, "seasonal",
+                                          "Seasonal Thread", self.verbose,seq2seq=True)
+            thread_1.start()
+            threads_list.append(thread_1)
+            thread_2 = Thread_train_model(model_residual, que, residual_x, residual_y, nb_epochs, nb_batch, "residual",
+                                          "Residual Thread", self.verbose,seq2seq=True)
+            thread_2.start()
+            threads_list.append(thread_2)
+        else :
+            thread = Thread_train_model(model_trend, que, trend_x, trend_y, nb_epochs, nb_batch, "trend", "Trend Thread",
+                                        self.verbose)
+            thread.start()
+            threads_list.append(thread)
+            thread_1 = Thread_train_model(model_seasonal, que, seasonal_x, seasonal_y, nb_epochs, nb_batch, "seasonal",
+                                          "Seasonal Thread", self.verbose)
+            thread_1.start()
+            threads_list.append(thread_1)
+            thread_2 = Thread_train_model(model_residual, que, residual_x, residual_y, nb_epochs, nb_batch, "residual",
+                                          "Residual Thread", self.verbose)
+            thread_2.start()
+            threads_list.append(thread_2)
+        for t in threads_list:
+            t.join()
+        self.model_trend = que.get(block=True)
+        self.model_save(self.model_trend, "trend")
+        self.model_seasonal = que.get(block=True)
+        self.model_save(self.model_seasonal, "seasonal")
+        self.model_residual = que.get(block=True)
+        self.model_save(self.model_residual, "residual")
+        print("Models fitted")
+
+    def predict(self, steps=1, frame=True, seq2seq=False):
+        if not seq2seq :
+            prediction, lower, upper = self.make_prediction(steps)
+            if frame:
+                return prediction[0], lower[0], upper[0]            
+            else :
+                return prediction[0]
+        else :
+            prediction,_,_=self.make_prediction_seq2seq()
+            prediction=prediction[0]
+            return prediction
+
+    def predict_past(self, df, freq_period, steps):
+        scalerfile = self.directory + '/scaler_pred.sav'
+        if not os.path.isfile(scalerfile) or os.path.isfile(scalerfile):
+            if (df["y"].max() - df["y"].min()) > 100:
+                if self.verbose == 1:
+                    print("PowerTransformation scaler used")
+                scaler = PowerTransformer()
+            else:
+                if self.verbose == 1:
+                    print("Identity scaler used")
+                scaler = IdentityTransformer()
+            self.scaler2 = scaler.fit(np.reshape(np.array(df["y"]), (-1, 1)))
+            Y = self.scaler2.transform(np.reshape(np.array(df["y"]), (-1, 1)))
+            pickle.dump(self.scaler2, open(scalerfile, 'wb'))
+        elif os.path.isfile(scalerfile):
+            self.scaler2 = pickle.load(open(scalerfile, "rb"))
+            Y = self.scaler2.transform(np.reshape(np.array(df["y"]), (-1, 1)))
+        if freq_period % 2 == 0:
+            freq_period = freq_period + 1
+        decomposition = STL(Y, period=freq_period + 1)
+        decomposition = decomposition.fit()
+        decomposition.plot()
+        plt.show()
+        df.loc[:, 'trend'] = decomposition.trend
+        df.loc[:, 'seasonal'] = decomposition.seasonal
+        df.loc[:, 'residual'] = decomposition.resid
+        df["trend"] = df['trend']
+        df["seasonal"] = df['seasonal']
+        df["residual"] = df['residual']
+        df_a = df
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        df["trend"] = df["trend"].fillna(method="bfill")
+        self.trend = np.asarray(df.loc[:, 'trend'])
+        self.seasonal = np.asarray(df.loc[:, 'seasonal'])
+        self.residual = np.asarray(df.loc[:, 'residual'])
+        prediction, _, _ = self.make_prediction(steps)
+        return prediction[0]
 
     def make_models_with(self, trend, df):
         '''
         Create an LSTM model depending on the parameters selected by the user
-
         Parameters
         ----------
         nb_layers : int
@@ -234,35 +342,50 @@ class GTSFutur():
             gradient descend's optimizer.
         trend : bool
               Distinguish trend signal from others (more complicated to modelise).
-
         Returns
         -------
         model : Sequential object
             model
         '''
         i = Input(shape=(self.nb_features, self.look_back))
-        x = LSTM(self.nb_layers, return_sequences=True, activation='relu',
+        x = LSTM(int(self.nb_layers), return_sequences=True, activation='relu',
                  input_shape=(self.nb_features, self.look_back))(i)
-        x = Activation("relu")(x)
         x = Dropout(0.2)(x)
-        x = LSTM(self.nb_layers, return_sequences=True)(x)
-        x = Dropout(0.2)(x)
-        x = attention_block(x)
+        for counter in range(0,self.deep_layers-1) :
+            x = LSTM(int(self.nb_layers / 2), return_sequences=True,activation='relu' ,input_shape=(self.nb_features, self.look_back))(x)
+            x = Dropout(0.2)(x)
+        if not trend:
+            x = attention_block(x)
         x = Dense(int(self.nb_layers / 2), activation='relu')(x)
         output = Dense(1)(x)
         model = Model(inputs=[i], outputs=[output])
-        model.compile(loss=self.loss, optimizer=self.optimizer, metrics=[self.metric])
+        optimizer = tensorflow.keras.optimizers.Adamax(lr=self.learning_rate)
+        model.compile(loss=self.loss, optimizer=optimizer, metrics=[self.metric])
         if self.verbose == 1:
             print(model.summary())
         return model
+    
+    def make_model_cnn(self,trend,df):
+        model = Sequential()
+        model.add(TimeDistributed(Conv1D(filters=64, kernel_size=1, activation='relu'), input_shape=(None, 56, 1)))
+        model.add(TimeDistributed(MaxPooling1D(pool_size=2)))
+        model.add(TimeDistributed(Flatten()))
+        model.add(LSTM(50, activation='relu'))
+        model.add(Dense(1))
+        model.compile(loss=self.loss, optimizer=self.optimizer, metrics=[self.metric])
+        return model
 
     def make_models(self, trend, df):
+        '''
+            Create sequential model without attention
+        '''
         model = Sequential()
         model.add(LSTM(self.nb_layers, return_sequences=True, activation='relu',
                        input_shape=(self.nb_features, self.look_back)))
         model.add(Dropout(0.2))
-        model.add(LSTM(self.nb_layers))
-        model.add(Dropout(0.2))
+        for i in range(self.deep_layers-1) :
+            model.add(LSTM(int(self.nb_layers)/2))
+            model.add(Dropout(0.2))
         if (df["y"].max() - df["y"].min()) > 100:
             model.add(Activation('softmax'))
         model.add(Dense(int(self.nb_layers / 2), activation='relu'))
@@ -276,18 +399,15 @@ class GTSFutur():
         '''
         This functino compute and print four differents metrics (mse ,mae ,r2 and median) to evaluate accuracy of the model
         prediction and real_data need to have the same size
-
         Parameters
         ----------
         prediction : array
             predicted values.
         real_data : array
             real data.
-
         Returns
         -------
         None.
-
         '''
         from sklearn.metrics import mean_absolute_error as mae
         from sklearn.metrics import mean_squared_error as mse
@@ -299,7 +419,7 @@ class GTSFutur():
         print("median_absolute_error : ", medae(real_data, prediction))
         print("r2_score : ", r2(real_data, prediction))
 
-    def prepare_data(self, df, look_back, freq_period,first=0):
+    def prepare_data(self, df, look_back, freq_period, first=0,seq2seq=False):
         '''
         Parameters
         ----------
@@ -307,7 +427,6 @@ class GTSFutur():
             datafrmae contening historical data .
         look_back : int
             length entry of the model .
-
         Decompose the signal in three sub signals, trend,seasonal and residual in order to work separetly on each signal
         Returns
         -------
@@ -324,46 +443,52 @@ class GTSFutur():
         residual_y : array
             same as trend_y but with the residual part of the signal.
         '''
-        df = df.dropna()
-        lendf=len(df)
+        imputer = KNNImputer(n_neighbors=2, weights="uniform")
+        df["y"]=imputer.fit_transform(np.array(df["y"]).reshape(-1, 1))
+        if look_back%2==0:
+            window=freq_period+1
+        else:
+            window=freq_period
+
         scalerfile = self.directory + '/scaler_pred.sav'
-        if not os.path.isfile(scalerfile) or os.path.isfile(scalerfile) and first == 1 :
+        if not os.path.isfile(scalerfile) or os.path.isfile(scalerfile) and first == 1:
             if (df["y"].max() - df["y"].min()) > 100:
-                if self.verbose == 1 :
+                if self.verbose == 1:
                     print("PowerTransformation scaler used")
                 scaler = PowerTransformer()
             else:
-                if self.verbose == 1 :
+                if self.verbose == 1:
                     print("Identity scaler used")
                 scaler = IdentityTransformer()
             self.scaler2 = scaler.fit(np.reshape(np.array(df["y"]), (-1, 1)))
             Y = self.scaler2.transform(np.reshape(np.array(df["y"]), (-1, 1)))
             pickle.dump(self.scaler2, open(scalerfile, 'wb'))
-        elif os.path.isfile(scalerfile) and first == 0 :
+        elif os.path.isfile(scalerfile) and first == 0:
             self.scaler2 = pickle.load(open(scalerfile, "rb"))
             Y = self.scaler2.transform(np.reshape(np.array(df["y"]), (-1, 1)))
-        if freq_period % 2 == 0 :
-            freq_period=freq_period+1
-        decomposition = STL(Y, period=freq_period + 1)
+        if freq_period % 2 == 0:
+            freq_period = freq_period + 1
+        decomposition = STL(Y, period=freq_period)
         decomposition = decomposition.fit()
-        plt.show()
         df.loc[:, 'trend'] = decomposition.trend
+        self.trend=decomposition.trend
         df.loc[:, 'seasonal'] = decomposition.seasonal
         df.loc[:, 'residual'] = decomposition.resid
-        df["trend"] = df['trend']
-        df["seasonal"] = df['seasonal']
-        df["residual"] = df['residual']
         df_a = df
         df = df.dropna()
-        self.shift = lendf - len(df["trend"])
         df = df.reset_index(drop=True)
         df["trend"] = df["trend"].fillna(method="bfill")
         self.trend = np.asarray(df.loc[:, 'trend'])
         self.seasonal = np.asarray(df.loc[:, 'seasonal'])
         self.residual = np.asarray(df.loc[:, 'residual'])
-        trend_x, trend_y = decoupe_dataframe(df["trend"], look_back)
-        seasonal_x, seasonal_y = decoupe_dataframe(df["seasonal"], look_back)
-        residual_x, residual_y = decoupe_dataframe(df["residual"], look_back)
+        if not self.seq2seq :
+            trend_x, trend_y = decoupe_dataframe(df["trend"], look_back)
+            seasonal_x, seasonal_y = decoupe_dataframe(df["seasonal"], look_back)
+            residual_x, residual_y = decoupe_dataframe(df["residual"], look_back)
+        else :
+            trend_x, trend_y = sequence_dataframe(df["trend"], look_back,self.len_pred)
+            seasonal_x, seasonal_y = sequence_dataframe(df["seasonal"], look_back,self.len_pred)
+            residual_x, residual_y = sequence_dataframe(df["residual"], look_back,self.len_pred)
         if self.verbose == 1:
             print("prepared")
         return trend_x, trend_y, seasonal_x, seasonal_y, residual_x, residual_y
@@ -371,7 +496,6 @@ class GTSFutur():
     def train_model(self, model, x_train, y_train, name):
         '''
         Train the model and save it in the right file
-
         Parameters
         ----------
         model : Sequential object
@@ -386,20 +510,19 @@ class GTSFutur():
             size of batch of element which gonna enter in the model before doing a back propagation.
         trend : bool
             Distinguish trend signal from others (more complicated to modelise).
-
         Returns
         -------
         model : Sequential object
             model.
         '''
         if name == "trend":
-            nb_epochs = self.nb_epochs * 3
+            nb_epochs = int(self.nb_epochs * 3)
             try:
                 x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
             except Exception as e:
                 if e:
-                    print(
-                        "************Not enought data in the input compared to the look back size. Put more data as input******")
+                    raise Exception(
+                        "************Not enought data in the input compared to the look back size. Put more data as input or decrease look_back ******")
             es = EarlyStopping(monitor='loss', mode='min', min_delta=1, patience=100)
             hist = model.fit(x_train, y_train, epochs=nb_epochs, batch_size=self.nb_batch, verbose=self.verbose,
                              callbacks=[es])
@@ -412,7 +535,7 @@ class GTSFutur():
             self.model_save(model, name)
         elif name == "residual":
             nb_epochs = self.nb_epochs * 6
-            x_train = x_train.reshape(x_train.shape[0], 0.1, x_train.shape[1])
+            x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
             es = EarlyStopping(monitor='loss', mode='min', min_delta=0.1, patience=100)
             hist = model.fit(x_train, y_train, epochs=nb_epochs, batch_size=self.nb_batch, verbose=self.verbose,
                              callbacks=[es])
@@ -425,14 +548,16 @@ class GTSFutur():
             print("model_trained")
             self.model_save(model, name)
         return model
+       
+
 
     def model_save(self, model, name):
         path = self.directory + "/" + name + ".h5"
-        if name =="trend" :
-            with open(self.directory+'/look_back.txt', 'w') as f:
-                    f.write('%d' % self.look_back)
-            with open(self.directory+'/freq_period.txt', 'w') as f:
-                    f.write('%d' % self.freq_period)
+        if name == "trend":
+            with open(self.directory + '/look_back.txt', 'w') as f:
+                f.write('%d' % self.look_back)
+            with open(self.directory + '/freq_period.txt', 'w') as f:
+                f.write('%d' % self.freq_period)
         save_model(model, path)
 
     def make_prediction(self, len_prediction):
@@ -442,12 +567,10 @@ class GTSFutur():
             make one prediction
             crush outdated data with prediction
             repeat len_prediction times
-
         Parameters
         ----------
         len_prediction : int
             number of value we want to predict.
-
         Returns
         -------
         prediction : array
@@ -463,6 +586,9 @@ class GTSFutur():
         data_trend = self.trend[-1 * self.look_back:]
         data_seasonal = self.seasonal[-1 * self.look_back:]
         prediction = np.zeros((1, len_prediction))
+        self.TREND = np.zeros((1, len_prediction))
+        self.SEASONAL = np.zeros((1, len_prediction))
+        self.RESIDUAL = np.zeros((1, len_prediction))
         for i in progressbar(range(len_prediction), "Computing: ", 40):
             dataset = np.reshape(data_residual, (1, 1, self.look_back))
             prediction_residual = (self.model_residual.predict(dataset))
@@ -476,7 +602,54 @@ class GTSFutur():
             prediction_seasonal = (self.model_seasonal.predict(dataset))
             data_seasonal = np.append(data_seasonal[1:], [prediction_seasonal]).reshape(-1, 1)
 
+            
             prediction[0, i] = prediction_residual + prediction_trend + prediction_seasonal
+            self.TREND[0, i] = prediction_trend
+            self.SEASONAL[0, i] = prediction_seasonal
+            self.RESIDUAL[0, i] = prediction_residual 
+        
+        prediction = self.scaler2.inverse_transform(np.reshape(prediction, (-1, 1)))
+        lower, upper = self.frame_prediction(np.reshape(prediction, (1, -1)))
+        return np.reshape(prediction, (1, -1)), lower, upper
+
+
+    def make_prediction_seq2seq(self):
+        '''
+        This function make the prediction :
+            reshape data to fit with the model
+            make one prediction
+            crush outdated data with prediction
+            repeat len_prediction times
+        Parameters
+        ----------
+        len_prediction : int
+            number of value we want to predict.
+        Returns
+        -------
+        prediction : array
+            values predicted.
+        pred_trend : array
+            values trend predicted (recherches prupose).
+        pred_seasonal : array
+            values seasonal predicted (recherches prupose).
+        pred_residual : array
+            values residual predicted (recherches prupose).
+        '''
+        data_residual = self.residual[-1 * self.look_back:]
+        data_trend = self.trend[-1 * self.look_back:]
+        data_seasonal = self.seasonal[-1 * self.look_back:]
+        
+        dataset = np.reshape(data_residual, (1, 1, self.look_back))
+        prediction_residual = (self.model_residual.predict(dataset))
+
+        dataset = np.reshape(data_trend, (1, 1, self.look_back))
+        prediction_trend = (self.model_trend.predict(dataset))
+
+
+        dataset = np.reshape(data_seasonal, (1, 1, self.look_back))
+        prediction_seasonal = (self.model_seasonal.predict(dataset))
+
+        prediction = [prediction_residual[i] + prediction_trend[i] + prediction_seasonal[i] for i in range(len(prediction_seasonal))]
         prediction = self.scaler2.inverse_transform(np.reshape(prediction, (-1, 1)))
         lower, upper = self.frame_prediction(np.reshape(prediction, (1, -1)))
         return np.reshape(prediction, (1, -1)), lower, upper
@@ -520,7 +693,7 @@ class GTSFutur():
         model = Model(inputs=[i], outputs=[output])
         model.compile(loss=loss, optimizer=optimizer, metrics=[metric])
         x_train, y_train = decoupe_dataframe(df["y"], look_back)
-        nb_epochs = nb_epochs * 7 * 8
+        nb_epochs = nb_epochs * 7
         try:
             x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
         except Exception as e:
@@ -539,7 +712,7 @@ class GTSFutur():
     def retrain(self, df, nb_features=1, nb_epochs=10, nb_batch=10):
         self.df = df
         self.nb_epochs = nb_epochs
-        self.nb_batch=nb_batch
+        self.nb_batch = nb_batch
         self.model_trend = self.train_model(self.model_trend, self.trend_x, self.trend_y, "trend")
         self.model_seasonal = self.train_model(self.model_seasonal, self.seasonal_x, self.seasonal_y, "seasonal")
         self.model_residual = self.train_model(self.model_residual, self.residual_x, self.residual_y, "residual")
@@ -557,34 +730,281 @@ class GTSFutur():
         self.model_seasonal = model_seasonal
         self.model_residual = model_residual
         return model_trend, model_seasonal, model_residual
-    
-    def reuse(self,df,directory=".",verbose=0) :
-        self.directory=r""+directory
-        self.model_trend = load_model(r"" + directory  + "/trend.h5")
-        self.model_seasonal = load_model(r"" + directory  + "/seasonal.h5")
-        self.model_residual = load_model(r"" + directory  + "/residual.h5")
-        self.verbose=verbose
+
+    def reuse(self, df, directory=".", verbose=0):
+        self.directory = r"" + directory
+        self.model_trend = load_model(r"" + directory + "/trend.h5")
+        self.model_seasonal = load_model(r"" + directory + "/seasonal.h5")
+        self.model_residual = load_model(r"" + directory + "/residual.h5")
+        self.verbose = verbose
         print("loaded")
-        f = open(directory+'/look_back.txt', 'r')
+        f = open(directory + '/look_back.txt', 'r')
         self.look_back = int(f.readline())
         f.close()
-        f = open(directory+'/freq_period.txt', 'r')
+        f = open(directory + '/freq_period.txt', 'r')
         self.freq_period = int(f.readline())
         f.close()
-        self.trend_x, self.trend_y, self.seasonal_x, self.seasonal_y, self.residual_x, self.residual_y = self.prepare_data(df, self.look_back,
-                                                                                             self.freq_period,first=0)
+        self.trend_x, self.trend_y, self.seasonal_x, self.seasonal_y, self.residual_x, self.residual_y = self.prepare_data(
+            df, self.look_back,
+            self.freq_period, first=0)
         return self
 
-    def plot_prediction(self,df,prediction,lower=0,upper=0):
-        x=np.arange(0,len(df),1)
-        y=df["y"]
-        x_2=np.arange(len(df),len(df)+len(prediction),1)
-        y_2=prediction
-        plt.plot(x,y,label="real data",color="blue")
-        plt.plot(x_2,y_2,label="predicted values",color="green")
-        if len(lower) > 2  :
+    def plot_prediction(self, df, prediction, lower=0, upper=0):
+        x = np.arange(0, len(df), 1)
+        y = df["y"]
+        x_2 = np.arange(len(df), len(df) + len(prediction), 1)
+        y_2 = prediction
+        plt.plot(x, y, label="real data", color="blue")
+        plt.plot(x_2, y_2, label="predicted values", color="green")
+        if type(lower) != int:
             x_2 = np.arange(len(df), len(df) + len(lower), 1)
-            plt.fill_between(x_2,lower[:],upper[:],color="red",alpha=0.3,label="95% CI")
+            plt.fill_between(x_2, lower[:], upper[:], color="red", alpha=0.3, label="95% CI")
+        plt.legend()
+        plt.show()
+        
+    def plot_subsignal(self,subsignal='trend'):
+        if subsignal=='trend':
+            y=self.trend
+            y_2=self.TREND[0]
+        elif subsignal=='seasonal':
+            y=self.seasonal
+            y_2=self.SEASONAL[0]
+        elif subsignal=='residual':
+            y=self.residual
+            y_2=self.RESIDUAL[0]
+        x = np.arange(0, len(y), 1)
+        x_2 = np.arange(len(y), len(y) + len(y_2), 1)
+        plt.plot(x, y, label="real data", color="blue")
+        plt.plot(x_2, y_2, label="predicted values", color="green")
         plt.legend()
         plt.show()
 
+    def score(self, prediction, real_data):
+        '''
+        This function returns the mean squared error
+        Parameters
+        ----------
+        prediction : array
+            predicted values.
+        real_data : array
+            real data.
+        Returns
+        -------
+        None.
+        '''
+        from sklearn.metrics import mean_squared_error as mse
+        self.mse = mse(np.reshape(np.array(real_data), (1, -1)), np.reshape(prediction, (1, -1)))
+        return self.mse
+
+    def fitness_ind(self, ind):
+        self.Loss = ["mse"]*4 
+        self.learning_rate = ind[4]
+        self.fit(self.train_df, self.look_back, self.freq_period, verbose=self.verbose, nb_epochs=int(ind[0]),
+                 nb_batch=int(ind[2]), nb_layers=int(ind[1]), metric=Loss[int(ind[3])])
+        pred = self.predict(steps=len(self.test_df["y"]), frame=False)
+        self.plot_prediction(self.test_df, pred)
+        score = self.score(np.array(self.test_df["y"]), pred)
+        return score
+
+    def fitness_pop(self, Pop):
+        scores = np.zeros((1, self.pop))
+        i = 0
+        for ind in Pop:
+            scores[0, i] = self.fitness_ind(ind)
+            i = i + 1
+        print(scores)
+        return scores
+    
+    
+
+    def selecting(self, Pop, scores):
+        old_pop = np.zeros((self.mat_pool, self.nb_charac))
+        for i in range(self.mat_pool):
+            pos_max = int(np.where(scores == np.amin(scores))[0])
+            scores[0, pos_max] = -1
+            old_pop[i, :] = Pop[pos_max]
+        return old_pop
+
+    def crossover(self, old_pop):
+        import random
+        import scipy.special
+        new_pop = np.zeros((int(scipy.special.factorial(old_pop.shape[0] - 1)), self.nb_charac))
+        t = 0
+        for i in range(self.mat_pool):
+            for j in range(i + 1, self.mat_pool):
+                new_pop[t, :2] = old_pop[i, :2]
+                new_pop[t, 2:] = old_pop[j, 2:]
+                b = random.randint(0, 2)
+                new_pop[t, b] = int(new_pop[t, b] / 3)
+                t = t + 1
+        return new_pop
+
+    def genetic_fit(self, df, train_ratio, look_back, freq_period, pop=3, gen=3,multi_thread=True):
+        import random
+        self.train_df = df[: int(train_ratio * len(df))]
+        self.test_df = df[-1 * int((1 - train_ratio) * len(df)):]
+        self.look_back = look_back
+        self.freq_period = freq_period
+        self.pop = pop
+        self.mat_pool = int(pop / 2) + 1
+        self.verbose = 0
+        self.gen = gen
+        self.Nb_epochs = [100, 150, 200, 180, 120, 250]
+        self.Nb_layers = [30, 35, 40, 45, 50, 55]
+        self.Batch_size = [15, 20, 25, 30, 35, 40]
+        self.Learning_rate = [0.001, 0.0001, 0.005, 0.01, 0.05, 0.007]
+        self.Loss = ["mse"]*4
+        Pop = [[self.Nb_epochs[random.randint(0, len(self.Nb_epochs))], self.Nb_layers[random.randint(0, len(self.Nb_layers))], self.Batch_size[random.randint(0, len(self.Batch_size))],
+                random.randint(0, 3), self.Learning_rate[random.randint(0, len(self.Learning_rate))]] for i in range(pop)]
+        self.nb_charac = 5
+        for i in range(1, self.gen):
+            print("==================== Generation " + str(i) + "/" + str(gen) + " ========================")
+            print(Pop)
+            if multi_thread :
+                scores = self.fitness_pop_multi(Pop)
+            else :
+                scores = self.fitness_pop(Pop)
+            old_pop = self.selecting(Pop, scores)
+            new_pop = self.crossover(old_pop)
+            for p in range(old_pop.shape[0]):
+                Pop[p] = old_pop[p, :]
+            for j in range(new_pop.shape[0]):
+                Pop[j] = new_pop[j, :]
+        scores = self.fitness_pop(Pop)
+        pos_max = np.where(scores == np.amin(scores))[0]
+        final_ind = Pop[int(pos_max)]
+        self.learning_rate = final_ind[4]
+        self.fit(self.df, self.look_back, self.freq_period, verbose=self.verbose, nb_epochs=int(final_ind[0]),
+                 nb_batch=int(final_ind[2]), nb_layers=int(final_ind[1]), metric=Loss[int(final_ind[3])])
+
+    def fit_predict_XGBoost(self, df, freq, date_format, steps=1, early_stopping_rounds=300, test_size=0.01,
+                            nb_estimators=3000):
+        df = df.dropna()
+        TIME = [None] * len(df['ds'])
+        # modification du timestamp en format compréhensible par le modèle
+        for i in range(len(df['ds'])):
+            dobj_a = datetime.strptime(df['ds'][i], date_format)
+            TIME[i] = dobj_a
+        df["ds"] = TIME
+        df = df.reset_index(drop=True)
+        df = df.set_index("ds")
+        df.index = pd.to_datetime(df.index)
+        X, Y = self.create_features(df=df, label='y')
+        reg = xgb.XGBRegressor(n_estimators=nb_estimators)
+        x_train = X[: int((1 - test_size) * len(X))]
+        y_train = Y[: int((1 - test_size) * len(Y))]
+        x_test = X[int((test_size) * len(X)):]
+        y_test = Y[int((test_size) * len(Y)):]
+        reg.fit(x_train, y_train,
+                eval_set=[(x_train, y_train), (x_test, y_test)],
+                early_stopping_rounds=early_stopping_rounds,
+                verbose=True)
+        dates = pd.date_range(df.index[len(df) - 1], freq=freq, periods=steps)
+        df2 = pd.DataFrame({"ds": dates})
+        df2 = df2.set_index("ds")
+        df2.index = pd.to_datetime(df2.index)
+        X2 = self.create_features(df=df2)
+        pred = reg.predict(X2)
+        return pred
+
+    def create_features(self, df, label=None):
+
+        df['date'] = df.index
+        df['hour'] = df['date'].dt.hour
+        df['dayofweek'] = df['date'].dt.dayofweek
+        df['quarter'] = df['date'].dt.quarter
+        df['month'] = df['date'].dt.month
+        df['year'] = df['date'].dt.year
+        df['dayofyear'] = df['date'].dt.dayofyear
+        df['dayofmonth'] = df['date'].dt.day
+        df['weekofyear'] = df['date'].dt.weekofyear
+        X = df[['hour', 'dayofweek', 'quarter', 'month', 'year',
+                'dayofyear', 'dayofmonth', 'weekofyear']]
+        if label:
+            y = df[label]
+            return X, y
+        return X
+
+
+
+    def Exp_smooth(self, df, freq_period, steps=1):
+        from statsmodels.tsa.holtwinters import ExponentialSmoothing
+        fit1 = ExponentialSmoothing(df["y"], seasonal_periods=freq_period, trend='add', seasonal='add').fit()
+        pred = fit1.forecast(steps)
+        return pred
+
+    def fit_predict_ES(self, df, freq_period, steps=1):
+        from statsmodels.tsa.holtwinters import ExponentialSmoothing
+        self.freq_period = freq_period
+        decomposition = STL(df["y"], period=freq_period + 1)
+        decomposition = decomposition.fit()
+        df.loc[:, 'trend'] = decomposition.trend
+        df.loc[:, 'seasonal'] = decomposition.seasonal
+        df.loc[:, 'residual'] = decomposition.resid
+        fit_tres = ExponentialSmoothing(df["trend"], seasonal_periods=freq_period, seasonal='add').fit()
+        prediction_trend = fit_tres.forecast(steps)
+        fit_res = ExponentialSmoothing(df["residual"], seasonal_periods=freq_period, seasonal='add').fit()
+        prediction_res = fit_res.forecast(steps)
+        fit_sea = ExponentialSmoothing(df["seasonal"], seasonal_periods=freq_period, seasonal='add').fit()
+        prediction_sea = fit_sea.forecast(steps)
+        prediction = prediction_trend + prediction_res + prediction_sea
+        return prediction
+
+
+    def denoise(self, df, threshold=0.2):
+        '''
+            Apply wavelet decomposition and reconstruction in order to denoise the signal, use the sym mother wavelet with a default threshold value of 0.2
+        '''
+        data=df["y"]
+        w = pywt.Wavelet('sym4')
+        maxlev = pywt.dwt_max_level(len(data), w.dec_len)
+        threshold = threshold
+        coeffs = pywt.wavedec(data, 'sym4', level=maxlev)
+        for i in range(1, len(coeffs)):
+            coeffs[i] = pywt.threshold(coeffs[i], threshold * max(coeffs[i]))
+        datarec = pywt.waverec(coeffs, 'sym4')
+        df["y"] = datarec[: len(df["y"])]
+        return df
+
+    def collect_result(result):
+        global results
+        results.append(result)
+        
+
+    def fitness_pop_multi(self, Pop):
+        scores = np.zeros((1, self.pop))
+        que = queue.Queue()
+        threads_list = list()
+        for ind in Pop:
+            thread = Thread_genetic_train_model(ind,que,self.train_df,self.test_df,self.look_back,self.freq_period,self.verbose,name="genetic")
+            thread.start()
+            threads_list.append(thread)
+        for i,t in enumerate(threads_list):
+            t.join()
+            scores[0, i]=que.get(block=True)
+        print("end of generation")
+        return scores
+
+         
+    def make_seq2seq_models(self,x_train,y_train):
+        input=Input(shape=(1, x_train.shape[1]))
+        output=Input(shape=(1, y_train.shape[1]))
+        n_hidden = 50
+        encoder_stack_h, encoder_last_h, encoder_last_c = LSTM(
+        n_hidden, activation='elu', dropout=0.2,
+        return_sequences=True, return_state=True)(input)
+        encoder_last_h = BatchNormalization(momentum=0.1)(encoder_last_h)
+        encoder_last_c = BatchNormalization(momentum=0.1)(encoder_last_c)
+        decoder = RepeatVector(self.len_pred)(encoder_last_h)
+        decoder_stack_h, decoder_last_h, decoder_last_c = LSTM(n_hidden, activation='elu', dropout=0.2,return_state=True, return_sequences=True)(decoder, initial_state=[encoder_last_h, encoder_last_c])
+        attention = dot([decoder_stack_h, encoder_stack_h], axes=[2, 2])
+        attention = Activation('softmax')(attention)
+        context = dot([attention, encoder_stack_h], axes=[2,1])
+        context = BatchNormalization(momentum=0.6)(context)
+        decoder_combined_context = concatenate([context, decoder_stack_h])
+        out = TimeDistributed(Dense(1))(decoder_combined_context)
+        model = Model(inputs=input, outputs=out)
+        opt = Adam(lr=0.001)
+        model.compile(loss='mae', optimizer=opt, metrics=['mse'])
+        print(model.summary())
+        return model
