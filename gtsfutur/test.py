@@ -4,7 +4,6 @@ from GTSFutur import GTSPredictor
 import matplotlib.pyplot as plt 
 #from fbprophet import Prophet
 import time 
-import torch
 
 past=-5*168
 
