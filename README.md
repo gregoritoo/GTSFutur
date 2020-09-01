@@ -84,10 +84,17 @@ model.plot_prediction(df,prediction,lower,upper)
 ```python
 model.plot_subsignal(subsignal='trend')
 ```
+
+**Generate new dataframe with date and predicted values**
+```python
+df=model.generate_dataframe(prediction=prediction,start_date="2020-07-05 14:00:00",freq="H",lower=lower,upper=upper)
+```
+
 **reuse a saved model**
 ```python
 model=model.reuse(df,directory="My_directory_name")
 ```
+
 **Retrain the model (on new data for example in order to do incremental learning)**
 ```python
 # before the model need to be loaded either it's just after the first training or used reuse function
