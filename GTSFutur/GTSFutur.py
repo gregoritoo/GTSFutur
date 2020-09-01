@@ -27,7 +27,7 @@ import threading
 import queue
 from Thread_train_model import Thread_train_model
 from Thread_genetic_train_model import Thread_genetic_train_model
-from ml_functions import decoupe_dataframe,EarlyStoppingByUnderVal,IdentityTransformer,attention_block
+from ml_functions import decoupe_dataframe,EarlyStoppingByUnderVal,IdentityTransformer,attention_block,attention
 import xgboost as xgb
 from xgboost import plot_importance, plot_tree
 import pandas as pd
@@ -89,7 +89,6 @@ class GTSPredictor():
         fig, (ax1, ax2) = plt.subplots(2, figsize=(8, 6))
         ax1.set(facecolor='#FFFFCC')
 
-        print(len(df["y"]))
         x = np.arange(0, len(df["y"]), 1)
         y = np.array(df["y"])
 
@@ -226,25 +225,23 @@ class GTSPredictor():
             trend_x, trend_y, seasonal_x, seasonal_y, residual_x, residual_y = self.prepare_data(df, look_back,
                                                                                                  self.freq_period, first=1, seq2seq=True)
 
-        print(trend_x.shape)
-        print(trend_y.shape)
         if seq2seq :
             model_trend =self.make_seq2seq_models(trend_x,trend_y)
             model_seasonal = self.make_seq2seq_models(trend_x,trend_y)
             model_residual = self.make_seq2seq_models(trend_x,trend_y)
         elif attention and not cnn :
-            model_trend = self.make_models_with(True, self.df)
-            model_seasonal = self.make_models_with(False, self.df)
-            model_residual = self.make_models_with(False, self.df)
+            model_trend = self.make_models_att(True, self.df)
+            model_seasonal = self.make_models_att(False, self.df)
+            model_residual = self.make_models_att(False, self.df)
         elif cnn:
             model_trend = self.make_model_cnn(True, self.df)
             model_seasonal = self.make_model_cnn(False, self.df)
             model_residual = self.make_model_cnn(False, self.df)
         
         else :
-            model_trend = self.make_models(True, self.df)
-            model_seasonal = self.make_models(False, self.df)
-            model_residual = self.make_models(False, self.df)
+            model_trend = self.make_models_with(True, self.df)
+            model_seasonal = self.make_models_with(False, self.df)
+            model_residual = self.make_models_with(False, self.df)
         que = queue.Queue()
         threads_list = list()
         if seq2seq :
@@ -364,8 +361,8 @@ class GTSPredictor():
         for counter in range(0,self.deep_layers-1) :
             x = LSTM(int(self.nb_layers / 2), return_sequences=True,activation='relu' ,input_shape=(self.nb_features, self.look_back))(x)
             x = Dropout(0.2)(x)
-        if not trend:
-            x = attention_block(x)
+        #if not trend:
+        #    x = attention_block(x)
         x = Dense(int(self.nb_layers / 2), activation='relu')(x)
         output = Dense(1)(x)
         model = Model(inputs=[i], outputs=[output])
@@ -385,7 +382,7 @@ class GTSPredictor():
         model.compile(loss=self.loss, optimizer=self.optimizer, metrics=[self.metric])
         return model
 
-    def make_models(self, trend, df):
+    def make_models_att(self, trend, df):
         '''
             Create sequential model without attention
         '''
@@ -394,8 +391,9 @@ class GTSPredictor():
                        input_shape=(self.nb_features, self.look_back)))
         model.add(Dropout(0.2))
         for i in range(self.deep_layers-1) :
-            model.add(LSTM(int(self.nb_layers)/2))
+            model.add(LSTM(int(self.nb_layers/2),return_sequences=True))
             model.add(Dropout(0.2))
+        model.add(attention(return_sequences=False))
         if (df["y"].max() - df["y"].min()) > 100:
             model.add(Activation('softmax'))
         model.add(Dense(int(self.nb_layers / 2), activation='relu'))
@@ -1016,4 +1014,3 @@ class GTSPredictor():
         model.compile(loss='mae', optimizer=opt, metrics=['mse'])
         print(model.summary())
         return model
-
