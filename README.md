@@ -45,25 +45,44 @@ my dataframe (df) is like below and have a 200 points seasonal pattern :</br>
 ...</br>
 **Code for prediction 365 steps ahead**
 ```python
-from GTSFutur.GTSPredictor import GTSPredictor
-model=GTSPredictor()
+import  GTSFutur.GTSFutur as gt
+model=gt.GTSPredictor()
 model.fit(df,look_back=400,freq_period=200,directory="My_directory_name")
 prediction,lower,upper=model.predict(steps=365)
 ```
 
 **Code for prediction 365 steps ahead using the user interface**
 ```python
-from GTSFutur.GTSPredictor import GTSPredictor
-model=GTSPredictor()
+import  GTSFutur.GTSFutur as gt
+model=gt.GTSPredictor()
 model.fit_with_UI(df,directory="My_directory_name")
 prediction,lower,upper=model.predict(steps=365)
 ```
 This will open a matplotlib figure and you will be able to select the seasonal pattern with the mouse
 
+**Use Holt-Winters models for quicker prediction (also better to use if less than 1000 training points)**
+```python
+import  GTSFutur.GTSFutur as gt
+model=gt.GTSPredictor()
+prediction= model.fit_predict_ES(df=df, freq_period=200, steps=365)
+```
+
+**Use genetic algorithm to find best hyper-parameters**
+```python
+import  GTSFutur.GTSFutur as gt
+model=gt.GTSPredictor()
+model.genetic_fit(df=df,look_back=365,freq_period=200,train_ratio=0.90,pop=3,gen=3,multi_thread=True)
+prediction,lower,upper=model.predict(steps=365)
+```
 
 **plot**
 ```python
 model.plot_prediction(df,prediction,lower,upper)
+```
+
+**plot training of the separete signals (trend,seasonal and residual)**
+```python
+model.plot_subsignal(subsignal='trend')
 ```
 **reuse a saved model**
 ```python
@@ -125,8 +144,8 @@ Use
 
 **Detect disruption in the seasonal shape for contextual anomalies**:
 ```python
-    from GTSFutur.GTSDetector import Wave_Detector,Period_Detector,Mad_Detector,Variation_Detector,Autoencoder_Detector,IEQ_Detector
-    detector=Period_Detector()
+    import  GTSFutur.GTSDetector as gd
+    detector=gd.Period_Detector()
     detector.fit(data)
     anomaly=detector.detect(data,threshold=0.2)
     detector.plot_anomalies(anomaly,data)
@@ -134,8 +153,8 @@ Use
 
 **Detect points far from the average statical distribution**:
 ```python
-    from GTSFutur.GTSDetector import Wave_Detector,Period_Detector,Mad_Detector,Variation_Detector,Autoencoder_Detector,IEQ_Detector
-    detector=IEQ_Detector()
+    import  GTSFutur.GTSDetector as gd
+    detector=gd.IEQ_Detector()
     detector.fit(data)
     #alpha a severity parameter
     anomaly=detector.detect(data,alpha=1.96)
@@ -145,16 +164,16 @@ Use
 
 **Detect points far from the median**:
 ```python
-    from GTSFutur.GTSDetector import Wave_Detector,Period_Detector,Mad_Detector,Variation_Detector,Autoencoder_Detector,IEQ_Detector
-    detector=Mad_Detector()
+    import  GTSFutur.GTSDetector as gd
+    detector=gd.Mad_Detector()
     detector.fit(data)
     anomaly=detector.detect(data,alpha=0.6785)
     detector.plot_anomalies(anomaly,data)
 ```
 **Detect important changes of values for measurements like mean,standard deviation and median on slidding windows**:
 ```python
-    from GTSFutur.GTSDetector import Wave_Detector,Period_Detector,Mad_Detector,Variation_Detector,Autoencoder_Detector,IEQ_Detector
-    detector=Variation_Detector(method="std")
+    import  GTSFutur.GTSDetector as gd
+    detector=gd.Variation_Detector(method="std")
     detector.fit(data)
     anomaly=detector.detect(data,threshold=0.5,windows_size=25)
     detector.plot_anomalies(anomaly,data)
@@ -162,16 +181,16 @@ Use
 
 **Detect peaks once the signal denoised**:
 ```python
-    from GTSFutur.GTSDetector import Wave_Detector,Period_Detector,Mad_Detector,Variation_Detector,Autoencoder_Detector,IEQ_Detector
-    detector=Wave_Detector()
+    import  GTSFutur.GTSDetector as gd
+    detector=gd.Wave_Detector()
     detector.fit(data,threshold=0.3)
     anomaly=detector.detect(data,alpha=10)
     detector.plot_anomalies(anomaly,data)
 ```
 **Use a LSTM auto encoder to detect more complexe, global and contextual, anomalies**:
 ```python
-    from GTSFutur.GTSDetector import Wave_Detector,Period_Detector,Mad_Detector,Variation_Detector,Autoencoder_Detector,IEQ_Detector
-    detector=Autoencoder_Detector()
+    import  GTSFutur.GTSDetector as gd
+    detector=gd.Autoencoder_Detector()
     detector.fit(100,data,"My_directory_name")
     anomaly=detector.detect(data,"My_directory_name",threshold=5)
     detector.plot_anomalies(anomaly,data)
