@@ -97,7 +97,27 @@ This will open a matplotlib figure and you will be able to select the seasonal p
 
     # You need to know the format of the time column (here 2020M02 for februray 2020)
     prediction=model.fit_predict_XGBoost(df,"m","%YM%m",steps=100)
+    
+**Train and predict using Holt Winters**
 
+::
+    prediction= model.fit_predict_ES(df=df, freq_period=period, steps=len_pred)
+
+
+**Train and hyper parameters tunning using genetic algorithm**
+
+::
+    # pop = number of people in the first generation / gen = number of generation to do 
+    # WARNING = multi_thread mode consume 100% of the CPU during the training.
+    prediction= model.genetic_fit(df, train_ratio=0.95, look_back=168, freq_period=24, pop=3, gen=3,multi_thread=True)
+    
+**Train and prediction using a seq2seq model**
+
+::
+    # pop = number of people in the first generation / gen = number of generation to do 
+    # WARNING = multi_thread mode consume 100% of the CPU during the training.
+    model.fit(df,look_back=400,freq_period=200,directory="My_directory_name",len_pred=10,seq2seq=True)
+    prediction=model.predict()
 Results
 -------
 
