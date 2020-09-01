@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
+
+
 import os
 import scipy.signal
-import logging
-logging.getLogger('tensorflow').setLevel(logging.ERROR)
-os.environ["KMP_AFFINITY"] = "noverbose"
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
-tf.get_logger().setLevel('ERROR')
-tf.autograph.set_verbosity(3)
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import  LSTM, Dropout
+from tensorflow.keras.layers import Dense, Lambda, dot, Activation, concatenate, Input ,RepeatVector ,TimeDistributed,Conv1D,MaxPooling1D,Flatten,Layer
 from tensorflow.keras import Model
 import numpy as np
 import tensorflow
+from matplotlib.widgets import SpanSelector
 from tensorflow.keras.models import save_model, load_model
 from tensorflow.keras.callbacks import EarlyStopping, Callback
 import sys
@@ -22,128 +21,123 @@ import pickle
 from statsmodels.tsa.seasonal import STL
 import threading
 import queue
+from tensorflow.keras import backend as K
+import xgboost as xgb
+from xgboost import plot_importance, plot_tree
 import pandas as pd
 from datetime import datetime
+import joblib
+from piecewise.regressor import piecewise
+import pywt
 import multiprocessing as mp
 from multiprocessing import Process
 from multiprocessing import Queue
 from sklearn.impute import KNNImputer
-from GTSFutur.ml_functions import decoupe_dataframe,EarlyStoppingByUnderVal,IdentityTransformer,attention_block
 
 
-class Thread_train_model(threading.Thread):
+def progressbar(it, prefix="", size=60, file=sys.stdout):
+    count = len(it)
 
-    def __init__(self, model, q, x_train, y_train, nb_epochs, nb_batch, name_ts, name='', verbose=0,seq2seq=False):
-        threading.Thread.__init__(self)
-        self.name = name
-        self.model = model
-        self.cnn=False
-        self.seq2seq=seq2seq
-        self.x_train = x_train
-        self.y_train = y_train
-        self.nb_epochs = nb_epochs
-        self.nb_batch = nb_batch
-        self.name_ts = name_ts
+    def show(j):
+        x = int(size * j / count)
+        file.write("%s[%s%s] %i/%i\r" % (prefix, "#" * x, "." * (size - x), j, count))
+        file.flush()
+
+    show(0)
+    for i, item in enumerate(it):
+        yield item
+        show(i + 1)
+    file.write("\n")
+    file.flush()
+
+class EarlyStoppingByUnderVal(Callback):
+    '''
+    Class to stop model's training earlier if the value we monitor(monitor) goes under a threshold (value)
+    replace usual callbacks functions from keras
+    '''
+
+    def __init__(self, monitor='val_loss', value=0.00001, verbose=0):
+        super(Callback, self).__init__()
+        self.monitor = monitor
+        self.value = value
         self.verbose = verbose
-        self._stopevent = threading.Event()
-        self.q = q
-        print("The new thread with the name : " + self.name + " start running")
 
-    def run(self):
-        model = self.train_model(self.model, self.x_train, self.y_train, self.nb_epochs, self.nb_batch, self.name_ts)
-        self.q.put(model)
-        self.stop()
-        print("The thread " + self.name + " ended ")
-        return 0
+    def on_epoch_end(self, epoch, logs={}):
+        current = logs.get(self.monitor)
+        if current is None:
+            print("error")
 
-    def stop(self):
-        self._stopevent.set()
+        if current < self.value:
+            if self.verbose > 0:
+                print("Epoch %05d: early stopping THR" % epoch)
+            self.model.stop_training = True
 
-    def train_model(self, model, x_train, y_train, nb_epochs, nb_batch, name):
-        '''
-        Train the model 
 
-        Parameters
-        ----------
-        model : Sequential object
-            model.
-        x_train : array
-            training data inputs.
-        y_train : array
-            training data ouputs.
-        nb_epochs : int.
-            nb of training repetitions.
-        nb_batch : int
-            size of batch of element which gonna enter in the model before doing a back propagation.
-        trend : bool
-            Distinguish trend signal from others (more complicated to modelise).
+class IdentityTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
 
-        Returns
-        -------
-        model : Sequential object
-            model.
-        '''
-        a=3
-        if name == "trend":
-            nb_epochs = self.nb_epochs * 2
-            try:
-                if self.cnn :
-                    x_train = x_train.reshape((x_train.shape[0], a, int(x_train.shape[1]/a), 1))
-                else :
-                    x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
-                if self.seq2seq :
-                    y_train = y_train.reshape(y_train.shape[0], 1, y_train.shape[1]) 
-            except Exception as e:
-                if e:
-                    print(e)
-                    print(
-                        "************Not enought data in the input compared to the look back size. Data has size :" + str(
-                            np.shape(x_train)) + "*****")
-            es = EarlyStopping(monitor='mse', mode='min', min_delta=0.01, patience=100)
-            hist = model.fit(x_train, y_train, epochs=nb_epochs, batch_size=self.nb_batch, verbose=self.verbose,
-                             callbacks=[es])
-            i = 0
-            while hist.history["loss"][-1] > 10 and i < 5:
-                i = i + 1
-                epochs = 50
-                hist = model.fit(x_train, y_train, epochs=epochs, batch_size=100, verbose=self.verbose, callbacks=[es])
-            print("model_trained")
-        elif name == "residual":
-            nb_epochs = self.nb_epochs * 5
-            try:
-                if self.cnn :
-                    x_train = x_train.reshape((x_train.shape[0], a,int(x_train.shape[1]/a), 1))
-                else :
-                    x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
-                if self.seq2seq :
-                    y_train = y_train.reshape(y_train.shape[0], 1, y_train.shape[1]) 
-            except Exception as e:
-                if e:
-                    print(e)
-                    print(
-                        "************Not enought data in the input compared to the look back size. Data has size :" + str(
-                            np.shape(x_train)) + "*****")
-            es = EarlyStopping(monitor='loss', mode='min', min_delta=0.1, patience=100)
-            hist = model.fit(x_train, y_train, epochs=nb_epochs, batch_size=self.nb_batch, verbose=self.verbose,
-                             callbacks=[es])
-            i = 0
-        else:
-            nb_epochs = self.nb_epochs * 3
-            es = EarlyStoppingByUnderVal(monitor="loss", value=0.1, verbose=self.verbose)
-            try:
-                if self.cnn :
-                    x_train = x_train.reshape((x_train.shape[0], a,int(x_train.shape[1]/a), 1))
-                else :
-                    x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
-                if self.seq2seq :
-                    y_train = y_train.reshape(y_train.shape[0], 1, y_train.shape[1]) 
-            except Exception as e:
-                if e:
-                    print(e)
-                    print(
-                        "***Not enought data in the input compared to the look back size. Data has size :" + str(
-                            np.shape(x_train)) + "*****")
-            model.fit(x_train, y_train, epochs=nb_epochs, batch_size=self.nb_batch, verbose=self.verbose)
-            print("model_trained")
-        return model
+    def fit(self, input_array, y=None):
+        return self
+
+    def transform(self, input_array, y=None):
+        return input_array * 1
+
+    def inverse_transform(self, input_array, y=None):
+        return input_array * 1
+
+
+
+def decoupe_dataframe(df, look_back):
+    dataX, dataY = [], []
+    for i in range(len(df) - look_back - 1):
+        a = df[i:(i + look_back)]
+        dataY = dataY + [df[i + look_back]]
+        dataX.append(a)
+    return (np.asarray(dataX), np.asarray(dataY).flatten())
+
+
+
+def attention_block(hidden_states):
+    hidden_size = int(hidden_states.shape[2])
+    score_first_part = Dense(hidden_size, use_bias=False, name='attention_score_vec')(hidden_states)
+    h_t = Lambda(lambda x: x[:, -1, :], output_shape=(hidden_size,), name='last_hidden_state')(hidden_states)
+    score = dot([score_first_part, h_t], [2, 1], name='attention_score')
+    attention_weights = Activation('softmax', name='attention_weight')(score)
+    context_vector = dot([hidden_states, attention_weights], [1, 1], name='context_vector')
+    pre_activation = concatenate([context_vector, h_t], name='attention_output')
+    attention_vector = Dense(128, use_bias=False, activation='tanh', name='attention_vector')(pre_activation)
+    return attention_vector
+
+class attention(Layer):
     
+    def __init__(self, return_sequences=True):
+        self.return_sequences = return_sequences
+        super(attention,self).__init__()
+        
+    def build(self, input_shape):
+        
+        self.W=self.add_weight(name="att_weight", shape=(input_shape[-1],1),
+                               initializer="normal")
+        self.b=self.add_weight(name="att_bias", shape=(input_shape[1],1),
+                               initializer="zeros")
+        
+        super(attention,self).build(input_shape)
+
+    def get_config(self):
+
+        config = super().get_config().copy()
+        config.update({
+        })
+        return config
+        
+    def call(self, x):
+        
+        e = K.tanh(K.dot(x,self.W)+self.b)
+        a = K.softmax(e, axis=1)
+        output = x*a
+        
+        if self.return_sequences:
+            return output
+        
+        return K.sum(output, axis=1)
