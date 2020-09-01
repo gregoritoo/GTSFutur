@@ -6,7 +6,7 @@ with open('README.md') as readme_file:
 
 setup_args = dict(
     name='gtsfutur',
-    version='0.1.6.7.4',
+    version='0.1.6.7.5',
     description='Simplify time series forecasting',
     long_description_content_type="text/markdown",
     long_description=README + '\n\n' ,

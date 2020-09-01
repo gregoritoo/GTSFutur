@@ -1,9 +1,9 @@
 import pandas as pd 
 import numpy as np 
-from GTSFutur import GTSPredictor
+from GTSFutur.GTSPredictor import GTSPredictor
 import matplotlib.pyplot as plt 
-#from fbprophet import Prophet
 import time 
+import torch
 
 past=-5*168
 
@@ -42,7 +42,7 @@ plt.show()
 x=40
 plt.plot(np.array(prediction_2)[: x],label="prediction lstm")
 plt.plot(np.array(prediction)[: x],label="prediction ExpS")
-#♣plt.plot(np.array(pred[0,0,:]),label="Seq2seq")
+#plt.plot(np.array(pred[0,0,:]),label="Seq2seq")
 plt.plot(np.array(df['y'][past : past+len_pred])[: x],label="vrai data ")
 #plt.plot(np.array(prediction_xgb)[: x],label="prediction XGBOOST")
 #plt.plot(np.array(forecast["yhat"][-1*len_pred :])[: x],label="fbprophet")
