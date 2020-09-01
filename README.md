@@ -80,7 +80,7 @@ prediction,lower,upper=model.predict(steps=365)
 model.plot_prediction(df,prediction,lower,upper)
 ```
 
-**plot training of the separete signals (trend,seasonal and residual)**
+**plot training of the separate signals (trend,seasonal and residual)**
 ```python
 model.plot_subsignal(subsignal='trend')
 ```
