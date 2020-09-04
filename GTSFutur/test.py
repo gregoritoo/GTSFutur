@@ -3,7 +3,7 @@ import numpy as np
 from GTSFutur.GTSPredictor import GTSPredictor
 import matplotlib.pyplot as plt 
 import time 
-import torch
+
 
 past=-5*168
 
