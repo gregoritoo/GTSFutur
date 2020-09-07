@@ -1,8 +1,4 @@
 
-Exemple of real time linear prediction :
-
-![Linear PRED](/Images/gif_linear.gif)
-
 Exemple of LSTM + DECOMPOSITION prédiction :
 
 ![LSTM PRED](/Images/gif_lstm.gif)
