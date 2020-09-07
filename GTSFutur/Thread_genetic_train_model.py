@@ -1,13 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import scipy.signal
-import logging
-logging.getLogger('tensorflow').setLevel(logging.ERROR)
-os.environ["KMP_AFFINITY"] = "noverbose"
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
-tf.get_logger().setLevel('ERROR')
-tf.autograph.set_verbosity(3)
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import  LSTM, Dropout
 from tensorflow.keras.layers import Dense, Lambda, dot, Activation, concatenate, Input ,RepeatVector ,TimeDistributed,Conv1D,MaxPooling1D,Flatten
@@ -35,9 +29,10 @@ import multiprocessing as mp
 from multiprocessing import Process
 from multiprocessing import Queue
 from sklearn.impute import KNNImputer
-from GTSFutur.Thread_train_model import Thread_train_model
-from GTSFutur.ml_functions import decoupe_dataframe,EarlyStoppingByUnderVal,IdentityTransformer,attention_block,progressbar
-
+from ml_functions import progressbar
+from Thread_train_model import Thread_train_model
+from ml_functions import decoupe_dataframe,EarlyStoppingByUnderVal,IdentityTransformer,attention_block
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 class Thread_genetic_train_model(threading.Thread):
 
@@ -69,18 +64,17 @@ class Thread_genetic_train_model(threading.Thread):
         self.fit(self.train_df, self.look_back, self.freq_period, verbose=self.verbose, nb_epochs=int(ind[0]),
                  nb_batch=int(ind[2]), nb_layers=int(ind[1]), metric=Loss[int(ind[3])])
         pred = self.predict(steps=len(self.test_df["y"]), frame=False)
-        #self.plot_prediction(self.test_df, pred)
+
         score = self.score(np.array(self.test_df["y"]), pred)
         print(score)
         return score
     
     
     def fit(self, df, look_back, freq_period, verbose=0, nb_features=1, nb_epochs=200, nb_batch=100, nb_layers=50,
-            attention=True,cnn=False, loss="mape", metric="mse", optimizer="Adamax", directory=r"."):
+            attention=True, loss="mape", metric="mse", optimizer="Adamax", directory=r"."):
         if not os.path.isdir(directory) and directory != r".":
             os.makedirs(directory)
         self.loss = loss
-        self.cnn=cnn
         self.metric = metric
         self.optimizer = optimizer
         self.nb_features = nb_features
@@ -95,17 +89,14 @@ class Thread_genetic_train_model(threading.Thread):
         self.directory = directory
         trend_x, trend_y, seasonal_x, seasonal_y, residual_x, residual_y = self.prepare_data(df, look_back,
                                                                                              self.freq_period, first=1)
-        if attention and not cnn :
+        if attention :
             model_trend = self.make_models_with(True, self.df)
-            model_seasonal = self.make_models_with(False, self.df)
             model_residual = self.make_models_with(False, self.df)
         elif cnn:
             model_trend = self.make_model_cnn(True, self.df)
-            model_seasonal = self.make_model_cnn(False, self.df)
             model_residual = self.make_model_cnn(False, self.df)
         else:
             model_trend = self.make_models(True, self.df)
-            model_seasonal = self.make_models(False, self.df)
             model_residual = self.make_models(False, self.df)
         que = queue.Queue()
         threads_list = list()
@@ -113,10 +104,6 @@ class Thread_genetic_train_model(threading.Thread):
                                     self.verbose)
         thread.start()
         threads_list.append(thread)
-        thread_1 = Thread_train_model(model_seasonal, que, seasonal_x, seasonal_y, nb_epochs, nb_batch, "seasonal",
-                                      self.name + " Seasonal Thread", self.verbose)
-        thread_1.start()
-        threads_list.append(thread_1)
         thread_2 = Thread_train_model(model_residual, que, residual_x, residual_y, nb_epochs, nb_batch, "residual",
                                       self.name+ " Residual Thread", self.verbose)
         thread_2.start()
@@ -124,7 +111,6 @@ class Thread_genetic_train_model(threading.Thread):
         for t in threads_list:
             t.join()
         self.model_trend = que.get(block=True)
-        self.model_seasonal = que.get(block=True)
         self.model_residual = que.get(block=True)
         print("Models fitted")
         
@@ -159,8 +145,9 @@ class Thread_genetic_train_model(threading.Thread):
         '''
         data_residual = self.residual[-1 * self.look_back:]
         data_trend = self.trend[-1 * self.look_back:]
-        data_seasonal = self.seasonal[-1 * self.look_back:]
         prediction = np.zeros((1, len_prediction))
+        self.TREND = np.zeros((1, len_prediction))
+        self.RESIDUAL = np.zeros((1, len_prediction))
         for i in progressbar(range(len_prediction), "Computing: ", 40):
             dataset = np.reshape(data_residual, (1, 1, self.look_back))
             prediction_residual = (self.model_residual.predict(dataset))
@@ -168,15 +155,16 @@ class Thread_genetic_train_model(threading.Thread):
                                                                                         )
             dataset = np.reshape(data_trend, (1, 1, self.look_back))
             prediction_trend = (self.model_trend.predict(dataset))
-            data_trend = np.append(data_trend[1:], [prediction_trend]).reshape(-1, 1)
+            data_trend = np.append(data_trend[1:], [prediction_trend]).reshape(-1, 1)          
+            prediction[0, i] = prediction_residual + prediction_trend 
+            self.TREND[0, i] = prediction_trend
+            self.RESIDUAL[0, i] = prediction_residual     
+        fit_sea = ExponentialSmoothing(self.seasonal, seasonal_periods=self.freq_period, seasonal='add').fit()
+        prediction_sea = fit_sea.forecast(len_prediction)
+        prediction=[prediction[0, i] + prediction_sea[i] for i in range(len_prediction)]
+        prediction = self.scaler2.inverse_transform(np.reshape(prediction, (-1, 1)))
+        return np.reshape(prediction, (1, -1))  
 
-            dataset = np.reshape(data_seasonal, (1, 1, self.look_back))
-            prediction_seasonal = (self.model_seasonal.predict(dataset))
-            data_seasonal = np.append(data_seasonal[1:], [prediction_seasonal]).reshape(-1, 1)
-
-            prediction[0, i] = prediction_residual + prediction_trend + prediction_seasonal
-        prediction = self.scaler2.inverse_transform(np.reshape(prediction, (-1, 1)))       
-        return np.reshape(prediction, (1, -1))
     
     def prepare_data(self, df, look_back, freq_period, first=0):
         '''
@@ -203,16 +191,11 @@ class Thread_genetic_train_model(threading.Thread):
             same as trend_y but with the residual part of the signal.
         '''
         imputer = KNNImputer(n_neighbors=2, weights="uniform")
-        df["y"]=imputer.fit_transform(np.array(df["y"]).reshape(-1, 1))
+        df.loc[:,"y"]=imputer.fit_transform(np.array(df["y"]).reshape(-1, 1))
         if look_back%2==0:
             window=freq_period+1
         else:
             window=freq_period
-       # plt.plot(df["y"])
-       # plt.show()
-        #df["y"] = scipy.signal.savgol_filter(df["y"], window, 3)
-       # plt.plot(df["y"])
-       # plt.show()
         scalerfile = self.directory + '/scaler_pred.sav'
         if not os.path.isfile(scalerfile) or os.path.isfile(scalerfile) and first == 1:
             if (df["y"].max() - df["y"].min()) > 100:
@@ -236,9 +219,6 @@ class Thread_genetic_train_model(threading.Thread):
         df.loc[:, 'trend'] = decomposition.trend
         df.loc[:, 'seasonal'] = decomposition.seasonal
         df.loc[:, 'residual'] = decomposition.resid
-        df_a = df
-        df = df.dropna()
-        df = df.reset_index(drop=True)
         df["trend"] = df["trend"].fillna(method="bfill")
         self.trend = np.asarray(df.loc[:, 'trend'])
         self.seasonal = np.asarray(df.loc[:, 'seasonal'])

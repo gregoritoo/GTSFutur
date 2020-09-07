@@ -40,11 +40,30 @@ from multiprocessing import Process
 from multiprocessing import Queue
 from sklearn.impute import KNNImputer
 import warnings 
+from LSTM import LSTM_PAST
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 results = []
 
 
 
 def sequence_dataframe(df,look_back,len_pred):
+    '''
+     Cut dataframe into training sequences 
+    Parameters
+    ----------
+    df : array
+        array with data.
+    look_back : int
+        size of lsmt input.
+    len_pred : int
+        length of prediction.
+
+    Returns
+    -------
+    tuple
+        X_train and Y_train.
+
+    '''
     dataX, dataY = [], []
     for i in range(len(df) - look_back -len_pred- 1):
         a = df[i:(i + look_back)]
@@ -81,7 +100,39 @@ class GTSPredictor():
 
     def fit_with_UI(self, df, verbose=0, nb_features=1, nb_epochs=300, nb_batch=32, nb_layers=50,
                     attention=True, loss="mape", metric="mse", optimizer="Adamax", directory=r"."):
+        '''
+        open a simple matplotlib user interface for selecting the period size  , make the preprocessing steps and train the models
 
+        Parameters
+        ----------
+        df : dataframe
+            datframe containing "y" column with the data .
+        verbose : int, optional
+            same verbose as keras. The default is 0.
+        nb_features : int, optional
+            dimension of input. The default is 1.
+        nb_epochs : int, optional
+           same as keras . The default is 300.
+        nb_batch : int, optional
+            same as keras . The default is 32.
+        nb_layers : int, optional
+            same as keras . The default is 50.
+        attention : bool, optional
+            use attention layer or not. The default is True.
+        loss : str, optional
+            choose the loss. The default is "mape".
+        metric : str, optional
+            choose the metric. The default is "mse".
+        optimizer : str, optional
+            choose the metric. The default is "Adamax".
+        directory : str, optional
+            choose the directory where the models will be saved. The default is r".".
+
+        Returns
+        -------
+        None.
+
+        '''
         if not os.path.isdir(directory) and directory != r".":
             os.makedirs(directory)
         np.random.seed(19680801)
@@ -195,14 +246,56 @@ class GTSPredictor():
     
 
     def fit(self, df, look_back, freq_period, verbose=0, nb_features=1, nb_epochs=200, nb_batch=100, nb_layers=64,
-            attention=True,cnn=False, loss="mape", metric="mse", optimizer="Adamax", directory=r".",len_pred=1,seq2seq=False,deep_layers=2):
+            attention=True, loss="mape", metric="mse", optimizer="Adamax", directory=r".",len_pred=1,seq2seq=False,deep_layers=2):
+        '''
+        Parameters
+        ----------
+        df : dataframe
+            with a time columns (string) and y the columns with the values to forecast.
+        look_back : int
+            size of inputs .
+        freq_period : int
+            size in point of the seasonal pattern (ex 24 if daily seasonality for a signal sampled at 1h frequency).
+        verbose : 0 or 1
+            If 0 no information printed during the creation and training of models.
+        nb_features :int, optional
+             output size. The default is 1.
+        nb_epochs : int, optional
+             The default is 50.
+        nb_batch : int, optional
+            DESCRIPTION. The default is 100.
+        nb_layers : int, optional
+             The default is 50.
+        attention : Bool, optional
+            Either use or not the attention layer. The default is True.
+        loss : str, optional
+            loss for evaluation error between input and output . The default is "mape".
+        metric : str, optional
+            metrics for evaluation the training predictions. The default is "mse".
+        optimizer : str, optional
+            Keras optimizers. The default is "Adamax".
+        directory : str, optional
+            directory path which need to end by "/". The default is r".".
+        len_pred : int, optional
+            length of prediction is seq2seq model selected. The default is 1.
+        seq2seq : bool, optional
+            use seq2seq model or not . The default is False.
+        deep_layers : int, optional
+            number of LSTM layers. The default is 2.
+        testing : bool, optional
+            use the CNN-LSTM with manual attention. The default is False.
+
+        Returns
+        -------
+        None.
+
+        '''
         if len(df["y"]) < 1000 :
         	warnings.warn('Attention this function needs more data to be efficient. Please use fit_predict_ES instead') 
         	print('Attention this function needs more data to be efficient. Please use fit_predict_ES instead')
         if not os.path.isdir(directory) and directory != r".":
             os.makedirs(directory)
         self.loss = loss
-        self.cnn=cnn
         self.metric = metric
         self.optimizer = optimizer
         self.nb_features = nb_features
@@ -227,20 +320,13 @@ class GTSPredictor():
 
         if seq2seq :
             model_trend =self.make_seq2seq_models(trend_x,trend_y)
-            model_seasonal = self.make_seq2seq_models(trend_x,trend_y)
             model_residual = self.make_seq2seq_models(trend_x,trend_y)
-        elif attention and not cnn :
-            model_trend = self.make_models_att(True, self.df)
-            model_seasonal = self.make_models_att(False, self.df)
+        elif attention  :
+            model_trend = self.make_models_att(False, self.df)
             model_residual = self.make_models_att(False, self.df)
-        elif cnn:
-            model_trend = self.make_model_cnn(True, self.df)
-            model_seasonal = self.make_model_cnn(False, self.df)
-            model_residual = self.make_model_cnn(False, self.df)
-        
+      
         else :
             model_trend = self.make_models_with(True, self.df)
-            model_seasonal = self.make_models_with(False, self.df)
             model_residual = self.make_models_with(False, self.df)
         que = queue.Queue()
         threads_list = list()
@@ -250,10 +336,7 @@ class GTSPredictor():
                                         self.verbose,seq2seq=True)
             thread.start()
             threads_list.append(thread)
-            thread_1 = Thread_train_model(model_seasonal, que, seasonal_x, seasonal_y, nb_epochs, nb_batch, "seasonal",
-                                          "Seasonal Thread", self.verbose,seq2seq=True)
-            thread_1.start()
-            threads_list.append(thread_1)
+
             thread_2 = Thread_train_model(model_residual, que, residual_x, residual_y, nb_epochs, nb_batch, "residual",
                                           "Residual Thread", self.verbose,seq2seq=True)
             thread_2.start()
@@ -263,10 +346,7 @@ class GTSPredictor():
                                         self.verbose)
             thread.start()
             threads_list.append(thread)
-            thread_1 = Thread_train_model(model_seasonal, que, seasonal_x, seasonal_y, nb_epochs, nb_batch, "seasonal",
-                                          "Seasonal Thread", self.verbose)
-            thread_1.start()
-            threads_list.append(thread_1)
+
             thread_2 = Thread_train_model(model_residual, que, residual_x, residual_y, nb_epochs, nb_batch, "residual",
                                           "Residual Thread", self.verbose)
             thread_2.start()
@@ -275,13 +355,29 @@ class GTSPredictor():
             t.join()
         self.model_trend = que.get(block=True)
         self.model_save(self.model_trend, "trend")
-        self.model_seasonal = que.get(block=True)
-        self.model_save(self.model_seasonal, "seasonal")
         self.model_residual = que.get(block=True)
         self.model_save(self.model_residual, "residual")
         print("Models fitted")
 
     def predict(self, steps=1, frame=True, seq2seq=False):
+        '''
+        Launch prediction
+
+        Parameters
+        ----------
+        steps : int , optional
+            lenght of prediction. The default is 1.
+        frame : bool, optional
+            frame the prediction or not(if true the function will return 3 arrays). The default is True.
+        seq2seq : bool, optional
+            use seq2seq models . The default is False.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        '''
         if not seq2seq :
             prediction, lower, upper = self.make_prediction(steps)
             if frame:
@@ -319,13 +415,7 @@ class GTSPredictor():
         df.loc[:, 'trend'] = decomposition.trend
         df.loc[:, 'seasonal'] = decomposition.seasonal
         df.loc[:, 'residual'] = decomposition.resid
-        df["trend"] = df['trend']
-        df["seasonal"] = df['seasonal']
-        df["residual"] = df['residual']
-        df_a = df
-        df = df.dropna()
-        df = df.reset_index(drop=True)
-        df["trend"] = df["trend"].fillna(method="bfill")
+        df= df.fillna(method="bfill")
         self.trend = np.asarray(df.loc[:, 'trend'])
         self.seasonal = np.asarray(df.loc[:, 'seasonal'])
         self.residual = np.asarray(df.loc[:, 'residual'])
@@ -358,11 +448,9 @@ class GTSPredictor():
         x = LSTM(int(self.nb_layers), return_sequences=True, activation='relu',
                  input_shape=(self.nb_features, self.look_back))(i)
         x = Dropout(0.2)(x)
-        for counter in range(0,self.deep_layers-1) :
-            x = LSTM(int(self.nb_layers / 2), return_sequences=True,activation='relu' ,input_shape=(self.nb_features, self.look_back))(x)
-            x = Dropout(0.2)(x)
-        #if not trend:
-        #    x = attention_block(x)
+        x = LSTM(int(self.nb_layers / 2), return_sequences=True,activation='relu' ,input_shape=(self.nb_features, self.look_back))(x)
+        x = Dropout(0.2)(x)
+        x = attention_block(x)
         x = Dense(int(self.nb_layers / 2), activation='relu')(x)
         output = Dense(1)(x)
         model = Model(inputs=[i], outputs=[output])
@@ -372,36 +460,11 @@ class GTSPredictor():
             print(model.summary())
         return model
     
-    def make_model_cnn(self,trend,df):
-        model = Sequential()
-        model.add(TimeDistributed(Conv1D(filters=64, kernel_size=1, activation='relu'), input_shape=(None, 56, 1)))
-        model.add(TimeDistributed(MaxPooling1D(pool_size=2)))
-        model.add(TimeDistributed(Flatten()))
-        model.add(LSTM(50, activation='relu'))
-        model.add(Dense(1))
-        model.compile(loss=self.loss, optimizer=self.optimizer, metrics=[self.metric])
-        return model
 
-    def make_models_att(self, trend, df):
-        '''
-            Create sequential model without attention
-        '''
-        model = Sequential()
-        model.add(LSTM(self.nb_layers, return_sequences=True, activation='relu',
-                       input_shape=(self.nb_features, self.look_back)))
-        model.add(Dropout(0.2))
-        for i in range(self.deep_layers-1) :
-            model.add(LSTM(int(self.nb_layers/2),return_sequences=True))
-            model.add(Dropout(0.2))
-        model.add(attention(return_sequences=False))
-        if (df["y"].max() - df["y"].min()) > 100:
-            model.add(Activation('softmax'))
-        model.add(Dense(int(self.nb_layers / 2), activation='relu'))
-        model.add(Dense(1))
+    def make_models_att(self, seasonal, df):
+        model=LSTM_PAST(self.look_back,self.freq_period,is_seasonal=seasonal)
         model.compile(loss=self.loss, optimizer=self.optimizer, metrics=[self.metric])
-        if self.verbose == 1:
-            print(model.summary())
-        return model
+        return model 
 
     def prediction_eval(self, prediction, real_data):
         '''
@@ -451,8 +514,9 @@ class GTSPredictor():
         residual_y : array
             same as trend_y but with the residual part of the signal.
         '''
+        self.seq2seq=seq2seq
         imputer = KNNImputer(n_neighbors=2, weights="uniform")
-        df["y"]=imputer.fit_transform(np.array(df["y"]).reshape(-1, 1))
+        df.loc[:,"y"]=imputer.fit_transform(np.array(df["y"]).reshape(-1, 1))
         if look_back%2==0:
             window=freq_period+1
         else:
@@ -479,11 +543,8 @@ class GTSPredictor():
         decomposition = STL(Y, period=freq_period)
         decomposition = decomposition.fit()
         df.loc[:, 'trend'] = decomposition.trend
-        self.trend=decomposition.trend
         df.loc[:, 'seasonal'] = decomposition.seasonal
         df.loc[:, 'residual'] = decomposition.resid
-        df = df.reset_index(drop=True)
-        df["trend"] = df["trend"].fillna(method="bfill")
         self.trend = np.asarray(df.loc[:, 'trend'])
         self.seasonal = np.asarray(df.loc[:, 'seasonal'])
         self.residual = np.asarray(df.loc[:, 'residual'])
@@ -522,7 +583,7 @@ class GTSPredictor():
             model.
         '''
         if name == "trend":
-            nb_epochs = int(self.nb_epochs * 3)
+            nb_epochs = int(self.nb_epochs * 5)
             try:
                 x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
             except Exception as e:
@@ -558,13 +619,19 @@ class GTSPredictor():
 
 
     def model_save(self, model, name):
-        path = self.directory + "/" + name + ".h5"
+        path = self.directory + "/" + name 
         if name == "trend":
             with open(self.directory + '/look_back.txt', 'w') as f:
                 f.write('%d' % self.look_back)
             with open(self.directory + '/freq_period.txt', 'w') as f:
                 f.write('%d' % self.freq_period)
-        save_model(model, path)
+            with open(self.directory + '/loss.txt', 'w') as f:
+                f.write('%s' % self.loss)
+            with open(self.directory + '/metric.txt', 'w') as f:
+                f.write('%s' % self.metric)
+            with open(self.directory + '/optimizer.txt', 'w') as f:
+                f.write('%s' % self.optimizer)
+        model.save_weights(path,save_format='tf')
 
     def make_prediction(self, len_prediction):
         '''
@@ -590,10 +657,8 @@ class GTSPredictor():
         '''
         data_residual = self.residual[-1 * self.look_back:]
         data_trend = self.trend[-1 * self.look_back:]
-        data_seasonal = self.seasonal[-1 * self.look_back:]
         prediction = np.zeros((1, len_prediction))
         self.TREND = np.zeros((1, len_prediction))
-        self.SEASONAL = np.zeros((1, len_prediction))
         self.RESIDUAL = np.zeros((1, len_prediction))
         for i in progressbar(range(len_prediction), "Computing: ", 40):
             dataset = np.reshape(data_residual, (1, 1, self.look_back))
@@ -602,18 +667,13 @@ class GTSPredictor():
                                                                                         )
             dataset = np.reshape(data_trend, (1, 1, self.look_back))
             prediction_trend = (self.model_trend.predict(dataset))
-            data_trend = np.append(data_trend[1:], [prediction_trend]).reshape(-1, 1)
-
-            dataset = np.reshape(data_seasonal, (1, 1, self.look_back))
-            prediction_seasonal = (self.model_seasonal.predict(dataset))
-            data_seasonal = np.append(data_seasonal[1:], [prediction_seasonal]).reshape(-1, 1)
-
-            
-            prediction[0, i] = prediction_residual + prediction_trend + prediction_seasonal
+            data_trend = np.append(data_trend[1:], [prediction_trend]).reshape(-1, 1)          
+            prediction[0, i] = prediction_residual + prediction_trend 
             self.TREND[0, i] = prediction_trend
-            self.SEASONAL[0, i] = prediction_seasonal
-            self.RESIDUAL[0, i] = prediction_residual 
-        
+            self.RESIDUAL[0, i] = prediction_residual     
+        fit_sea = ExponentialSmoothing(self.seasonal, seasonal_periods=self.freq_period, seasonal='add').fit()
+        prediction_sea = fit_sea.forecast(len_prediction)
+        prediction=[prediction[0, i] + prediction_sea[i] for i in range(len_prediction)]
         prediction = self.scaler2.inverse_transform(np.reshape(prediction, (-1, 1)))
         lower, upper = self.frame_prediction(np.reshape(prediction, (1, -1)))
         return np.reshape(prediction, (1, -1)), lower, upper
@@ -628,8 +688,7 @@ class GTSPredictor():
             repeat len_prediction times
         Parameters
         ----------
-        len_prediction : int
-            number of value we want to predict.
+
         Returns
         -------
         prediction : array
@@ -652,8 +711,8 @@ class GTSPredictor():
         prediction_trend = (self.model_trend.predict(dataset))
 
 
-        dataset = np.reshape(data_seasonal, (1, 1, self.look_back))
-        prediction_seasonal = (self.model_seasonal.predict(dataset))
+        fit_sea = ExponentialSmoothing(self.seasonal, seasonal_periods=self.freq_period, seasonal='add').fit()
+        prediction_sea = fit_sea.forecast(self.len_pred)
 
         prediction = [prediction_residual[i] + prediction_trend[i] + prediction_seasonal[i] for i in range(len(prediction_seasonal))]
         prediction = self.scaler2.inverse_transform(np.reshape(prediction, (-1, 1)))
@@ -693,7 +752,6 @@ class GTSPredictor():
         x = Dropout(0.2)(x)
         x = LSTM(nb_layers, return_sequences=True)(x)
         x = Dropout(0.2)(x)
-        # x=attention_block(x)
         x = Dense(int(nb_layers / 2), activation='relu')(x)
         output = Dense(1)(x)
         model = Model(inputs=[i], outputs=[output])
@@ -720,40 +778,65 @@ class GTSPredictor():
         self.nb_epochs = nb_epochs
         self.nb_batch = nb_batch
         self.model_trend = self.train_model(self.model_trend, self.trend_x, self.trend_y, "trend")
-        self.model_seasonal = self.train_model(self.model_seasonal, self.seasonal_x, self.seasonal_y, "seasonal")
         self.model_residual = self.train_model(self.model_residual, self.residual_x, self.residual_y, "residual")
         self.model_save(self.model_trend, "trend")
-        self.model_save(self.model_seasonal, "seasonal")
         self.model_save(self.model_residual, "residual")
         return self
 
     def load_models(self, directory="."):
-        model_trend = load_model(r"" + directory + "/" + "trend" + ".h5")
-        model_seasonal = load_model(r"" + directory + "/" + "seasonal" + ".h5")
-        model_residual = load_model(r"" + directory + "/" + "residual" + ".h5")
+        self.directory = r"" + directory
+        f = open(self.directory + '/look_back.txt', 'r')
+        self.look_back = int(f.readline())
+        f.close()
+        f = open(self.directory + '/freq_period.txt', 'r')
+        self.freq_period = int(f.readline())
+        f.close()
+        f = open(self.directory + '/loss.txt', 'r')
+        self.loss = str(f.readline())
+        f.close()
+        f = open(self.directory + '/optimizer.txt', 'r')
+        self.optimizer = str(f.readline())
+        f.close()
+        f = open(self.directory + '/metric.txt', 'r')
+        self.metric = str(f.readline())
+        f.close()
+        model_trend =LSTM_PAST(self.look_back,self.freq_period)
+        model_residual =LSTM_PAST(self.look_back,self.freq_period)
+        model_trend.compile(loss=self.loss, optimizer=self.optimizer, metrics=[self.metric])
+        model_residual.compile(loss=self.loss, optimizer=self.optimizer, metrics=[self.metric])
+        model_trend.load_weights(r"" + directory + "/" + "trend" )
+        model_residual.load_weights(r"" + directory + "/" + "residual" )
         print("loaded")
         self.model_trend = model_trend
-        self.model_seasonal = model_seasonal
         self.model_residual = model_residual
-        return model_trend, model_seasonal, model_residual
+        
 
     def reuse(self, df, directory=".", verbose=0):
         self.directory = r"" + directory
-        self.model_trend = load_model(r"" + directory + "/trend.h5")
-        self.model_seasonal = load_model(r"" + directory + "/seasonal.h5")
-        self.model_residual = load_model(r"" + directory + "/residual.h5")
+        print(self.directory)
+        self.load_models(directory=self.directory)
         self.verbose = verbose
         print("loaded")
-        f = open(directory + '/look_back.txt', 'r')
+        f = open(self.directory + '/look_back.txt', 'r')
         self.look_back = int(f.readline())
         f.close()
-        f = open(directory + '/freq_period.txt', 'r')
+        f = open(self.directory + '/freq_period.txt', 'r')
         self.freq_period = int(f.readline())
+        f.close()
+        f = open(self.directory + '/loss.txt', 'r')
+        self.loss = str(f.readline())
+        f.close()
+        f = open(self.directory + '/optimizer.txt', 'r')
+        self.optimizer = str(f.readline())
+        f.close()
+        f = open(self.directory + '/metric.txt', 'r')
+        self.metric = str(f.readline())
         f.close()
         self.trend_x, self.trend_y, self.seasonal_x, self.seasonal_y, self.residual_x, self.residual_y = self.prepare_data(
             df, self.look_back,
             self.freq_period, first=0)
         return self
+        
 
     def plot_prediction(self, df, prediction, lower=0, upper=0):
         x = np.arange(0, len(df), 1)
@@ -806,9 +889,8 @@ class GTSPredictor():
         self.Loss = ["mse"]*4 
         self.learning_rate = ind[4]
         self.fit(self.train_df, self.look_back, self.freq_period, verbose=self.verbose, nb_epochs=int(ind[0]),
-                 nb_batch=int(ind[2]), nb_layers=int(ind[1]), metric=Loss[int(ind[3])])
+                 nb_batch=int(ind[2]), nb_layers=int(ind[1]), metric=self.Loss[int(ind[3])])
         pred = self.predict(steps=len(self.test_df["y"]), frame=False)
-        self.plot_prediction(self.test_df, pred)
         score = self.score(np.array(self.test_df["y"]), pred)
         return score
 
@@ -860,8 +942,8 @@ class GTSPredictor():
         self.Batch_size = [15, 20, 25, 30, 35, 40]
         self.Learning_rate = [0.001, 0.0001, 0.005, 0.01, 0.05, 0.007]
         self.Loss = ["mse"]*4
-        Pop = [[self.Nb_epochs[random.randint(0, len(self.Nb_epochs))], self.Nb_layers[random.randint(0, len(self.Nb_layers))], self.Batch_size[random.randint(0, len(self.Batch_size))],
-                random.randint(0, 3), self.Learning_rate[random.randint(0, len(self.Learning_rate))]] for i in range(pop)]
+        Pop = [[self.Nb_epochs[random.randint(0, len(self.Nb_epochs)-1)], self.Nb_layers[random.randint(0, len(self.Nb_layers)-1)], self.Batch_size[random.randint(0, len(self.Batch_size)-1)],
+                random.randint(0, 3), self.Learning_rate[random.randint(0, len(self.Learning_rate)-1)]] for i in range(pop)]
         self.nb_charac = 5
         for i in range(1, self.gen):
             print("==================== Generation " + str(i) + "/" + str(gen) + " ========================")
@@ -881,7 +963,7 @@ class GTSPredictor():
         final_ind = Pop[int(pos_max)]
         self.learning_rate = final_ind[4]
         self.fit(self.df, self.look_back, self.freq_period, verbose=self.verbose, nb_epochs=int(final_ind[0]),
-                 nb_batch=int(final_ind[2]), nb_layers=int(final_ind[1]), metric=Loss[int(final_ind[3])])
+                 nb_batch=int(final_ind[2]), nb_layers=int(final_ind[1]), metric=self.Loss[int(final_ind[3])],attention=True)
 
     def fit_predict_XGBoost(self, df, freq, date_format, steps=1, early_stopping_rounds=300, test_size=0.01,
                             nb_estimators=3000):

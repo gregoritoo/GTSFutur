@@ -6,7 +6,7 @@ import scipy.signal
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import  LSTM, Dropout
-from tensorflow.keras.layers import Dense, Lambda, dot, Activation, concatenate, Input ,RepeatVector ,TimeDistributed,Conv1D,MaxPooling1D,Flatten
+from tensorflow.keras.layers import Dense, Lambda, dot, Activation, concatenate, Input ,RepeatVector ,TimeDistributed,Conv1D,MaxPooling1D,Flatten,Layer
 from tensorflow.keras import Model
 import numpy as np
 import tensorflow
@@ -21,7 +21,11 @@ import pickle
 from statsmodels.tsa.seasonal import STL
 import threading
 import queue
+from tensorflow.keras import backend as K
+import xgboost as xgb
+from xgboost import plot_importance, plot_tree
 import pandas as pd
+from datetime import datetime
 import joblib
 import pywt
 import multiprocessing as mp
@@ -103,3 +107,36 @@ def attention_block(hidden_states):
     pre_activation = concatenate([context_vector, h_t], name='attention_output')
     attention_vector = Dense(128, use_bias=False, activation='tanh', name='attention_vector')(pre_activation)
     return attention_vector
+
+class attention(Layer):
+    
+    def __init__(self, return_sequences=True):
+        self.return_sequences = return_sequences
+        super(attention,self).__init__()
+        
+    def build(self, input_shape):
+        
+        self.W=self.add_weight(name="att_weight", shape=(input_shape[-1],1),
+                               initializer="normal")
+        self.b=self.add_weight(name="att_bias", shape=(input_shape[1],1),
+                               initializer="zeros")
+        
+        super(attention,self).build(input_shape)
+
+    def get_config(self):
+
+        config = super().get_config().copy()
+        config.update({
+        })
+        return config
+        
+    def call(self, x):
+        
+        e = K.tanh(K.dot(x,self.W)+self.b)
+        a = K.softmax(e, axis=1)
+        output = x*a
+        
+        if self.return_sequences:
+            return output
+        
+        return K.sum(output, axis=1)
