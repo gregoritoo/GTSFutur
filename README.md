@@ -25,11 +25,7 @@ Let's focus on the most important methods : </br>
 -prediction_eval() </br>
 -load_models() </br>
 
-Install
--------
-```python
-pip install GTSFutur
-```
+
 
 
 Use
