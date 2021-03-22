@@ -1,10 +1,9 @@
 # General Time Serie Prediction and Anomalies Detection 
-[![PyPI version](https://badge.fury.io/py/GTSFutur.svg)](https://badge.fury.io/py/GTSFutur) </br>
 Exemple of LSTM + DECOMPOSITION prédiction :
 
 ![LSTM PRED](/Images/gif_lstm.gif)
 
-Full documentation available at [https://gtsfutur.readthedocs.io/en/latest/].</br>
+
 
 Summary
 -------
